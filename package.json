@@ -1,0 +1,17 @@
+{
+  "name": "tile_editor",
+  "version": "1.0.0",
+  "description": "A dev tool for creating tiled maps or graphics.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "node": "^16.10.0"
+  }
+}

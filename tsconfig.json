@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "watch": true,
+        "lib": ["DOM","ES2021"]
+    },
+    "files": [
+        "index.ts"
+      ]
+}
