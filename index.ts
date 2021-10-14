@@ -64,12 +64,24 @@ class Tile {
 }
 
 class Row {
-    contents = new Map();
-    position: number = 0
+    contents: Map<number,Tile> = new Map();
+    verticalPosition: number = 0
 
     constructor(width: number,verticalPosition: number) {
         this.fillTiles(width,verticalPosition)
-        this.position = verticalPosition;
+        this.verticalPosition = verticalPosition;
+    }
+    get width(): number {
+        return this.contents.size
+    }
+    get left(): number {
+        return Math.min(...this.CurrentXAxis)
+    }
+    get right(): number {
+        return Math.max(...this.CurrentXAxis)
+    }
+    get CurrentXAxis(): Array<number> {
+        return parseMapKeysToArray(this.contents)
     }
     fillTiles(width: number,verticalPosition: number): void {
         let XAxis = generateCoordinateAxis(width)
@@ -77,20 +89,58 @@ class Row {
             this.contents.set( XAxis[i] , new Tile(XAxis[i],verticalPosition) )
         }
     }
-    expandRow(amount: number, to: Direction): void {
-
+    _expandRow(amount: number, to: Direction): void {
+        //should not be called directly, but instead through its parent Grid.increaseWidth method.
+        if (to === "right") {
+            this._addTilesToRight(amount)
+        } else if (to === "left") {
+            this._addTilesToLeft(amount)
+        } else {
+            throw new Error('Invalid direction.')
+        }
     }
-    shortenRow(amount: number, from: Direction): void {
-
+    _addTilesToRight(amount: number) {
+        //positive x values
+        let rightmostPosition = this.right + 1
+        for (let i = 0; i < amount; i++) {
+            this.contents.set(rightmostPosition,new Tile(rightmostPosition,this.verticalPosition))
+            rightmostPosition++
+        }
+    }
+    _addTilesToLeft(amount: number) {
+        //negative x values
+        let leftmostPosition = this.left - amount
+        let oldMapCopy = new Map(this.contents)
+        this.contents.clear()
+        for (let i = 0; i < amount; i++) {
+            this.contents.set(leftmostPosition,new Tile(leftmostPosition,this.verticalPosition))
+            leftmostPosition++
+        }
+        this.contents = concatenateMaps(oldMapCopy,this.contents)
+    }
+    _shortenRow(amount: number, from: Direction): void {
+        //should not be called directly, but instead through its parent Grid.reduceWidth method.
+        if (amount > this.width) {
+            throw new Error('Cannot shorten row width below 0.')
+        } else if (from === 'left') {
+            for (let i = 0; i < amount; i++) {
+                this.contents.delete(this.left)
+            }
+        } else if (from === 'right') {
+            for (let i = 0; i < amount; i++) {
+                this.contents.delete(this.right)
+            }
+        }
     }
 }
 
 class Grid {
-    rows = new Map();
-    width: number;
+    rows: Map<number,Row> = new Map();
     constructor(width: number, height: number) {
-        this.width = width;
         this.fillRows(generateCoordinateAxis(height),width)
+    }
+    get width(): number {
+        return this.rows.get(this.bottom).width
     }
     get height(): number {
         return this.rows.size
@@ -101,19 +151,33 @@ class Grid {
     get top(): number {
         return Math.max(...this.CurrentYAxis)
     }
+    get CurrentYAxis(): Array<number> {
+        return parseMapKeysToArray(this.rows)
+    }
+    checkInconsistentRowWidths(): boolean {
+        let widths = []
+        this.rows.forEach((row,key)=>{
+            for (let i = 0; i < widths.length; i++) {
+                if (row.width != widths[i]) {
+                    throw new Error(`Inconsistent row widths in Grid at row ${key}`)
+                }
+            }
+            widths.push(row.width)
+        })
+        return false
+    }
     fillRows(YAxis: CoordinateAxis,width: number) {
         for (let i = 0; i < YAxis.length; i++) {
             this.rows.set( YAxis[i] , new Row(width,YAxis[i]) )
         }
     }
-    get CurrentYAxis(): Array<number> {
-        return parseMapKeysToArray(this.rows)
-    }
     increaseHeight(amount: number, to: Direction): void  {
         let YAxis = this.CurrentYAxis
         if (to === 'bottom') {
+            //negative y values
             this._addRowsToBottom(amount,YAxis)
         } else if (to === 'top') {
+            //positive y values
             this._addRowsToTop(amount,YAxis)
         }
     }
@@ -137,23 +201,31 @@ class Grid {
         this.rows = concatenateMaps(oldMapCopy,this.rows)
     }
     reduceHeight(amount: number, from: Direction): void  {
-        if (from === 'bottom') {
+        if (amount > this.height) {
+            throw new Error(`Cannot remove more rows than exist on Grid.`)
+        } else if (from === 'bottom') {
             for (let i = 0; i < amount; i++) {
-
+                this.rows.delete(this.bottom)
             }
-            this.rows.delete(this.bottom)
         } else if (from === 'top') {
-
+            for (let i = 0; i < amount; i++) {
+                this.rows.delete(this.top)
+            }
         }
     }
     increaseWidth(amount: number, to: Direction): void  {
-
+        this.rows.forEach((row)=>{
+            row._expandRow(amount,to)
+        })
     }
     reduceWidth(amount: number, from: Direction): void  {
-
+        this.rows.forEach((row)=>{
+            row._shortenRow(amount,from)
+        })
     }
     shiftRow() {
-
+        //move whole row in vertical order
+        //redundant. serves same purpose as just running moveSelection() on a whole row.
     }
     moveSelection(selection: GridSelection, from: Coordinate, to: Coordinate) {
 
