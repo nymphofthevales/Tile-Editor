@@ -28,11 +28,11 @@ main_process.terminate = () => {
 
 type Coordinate = [number,number]
 type CoordinateAxis = Array<number>
-type TileType = 'connection' | 'node' | 'none'
+type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
 
 class GridSelection {
-    contents: Tile[] = []
+    contents: Cell[] = []
 
     constructor() {
 
@@ -54,25 +54,29 @@ class GridSelection {
     }
 }
 
-class Tile {
+class Cell {
     XYCoordinate: Coordinate
-    type: TileType
+    type: CellType
 
     constructor(column: number,row: number) {
         this.XYCoordinate = [column,row];
     }
 }
 
+/**
+ * Sets up a data structure for a linear row of cells accessible by X-coordinate indices.
+ * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid
+ */
 class Row {
-    contents: Map<number,Tile> = new Map();
+    columns: Map<number,Cell> = new Map();
     verticalPosition: number = 0
 
     constructor(width: number,verticalPosition: number) {
-        this.fillTiles(width,verticalPosition)
+        this.fillColumns(width,verticalPosition)
         this.verticalPosition = verticalPosition;
     }
     get width(): number {
-        return this.contents.size
+        return this.columns.size
     }
     get left(): number {
         return Math.min(...this.CurrentXAxis)
@@ -81,42 +85,50 @@ class Row {
         return Math.max(...this.CurrentXAxis)
     }
     get CurrentXAxis(): Array<number> {
-        return parseMapKeysToArray(this.contents)
+        return parseMapKeysToArray(this.columns)
     }
-    fillTiles(width: number,verticalPosition: number): void {
+    column(XCoordinate: number): Cell {
+        return this.columns.get(XCoordinate)
+    }
+    /**
+     * Sets up basic structure of a Row 
+     * @param width 
+     * @param verticalPosition 
+     */
+    fillColumns(width: number,verticalPosition: number): void {
         let XAxis = generateCoordinateAxis(width)
         for (let i = 0; i < XAxis.length; i++) {
-            this.contents.set( XAxis[i] , new Tile(XAxis[i],verticalPosition) )
+            this.columns.set( XAxis[i] , new Cell(XAxis[i],verticalPosition) )
         }
     }
     _expandRow(amount: number, to: Direction): void {
         //should not be called directly, but instead through its parent Grid.increaseWidth method.
         if (to === "right") {
-            this._addTilesToRight(amount)
+            this._addCellsToRight(amount)
         } else if (to === "left") {
-            this._addTilesToLeft(amount)
+            this._addCellsToLeft(amount)
         } else {
             throw new Error('Invalid direction.')
         }
     }
-    _addTilesToRight(amount: number) {
+    _addCellsToRight(amount: number) {
         //positive x values
         let rightmostPosition = this.right + 1
         for (let i = 0; i < amount; i++) {
-            this.contents.set(rightmostPosition,new Tile(rightmostPosition,this.verticalPosition))
+            this.columns.set(rightmostPosition,new Cell(rightmostPosition,this.verticalPosition))
             rightmostPosition++
         }
     }
-    _addTilesToLeft(amount: number) {
+    _addCellsToLeft(amount: number) {
         //negative x values
         let leftmostPosition = this.left - amount
-        let oldMapCopy = new Map(this.contents)
-        this.contents.clear()
+        let oldMapCopy = new Map(this.columns)
+        this.columns.clear()
         for (let i = 0; i < amount; i++) {
-            this.contents.set(leftmostPosition,new Tile(leftmostPosition,this.verticalPosition))
+            this.columns.set(leftmostPosition,new Cell(leftmostPosition,this.verticalPosition))
             leftmostPosition++
         }
-        this.contents = concatenateMaps(oldMapCopy,this.contents)
+        this.columns = concatenateMaps(oldMapCopy,this.columns)
     }
     _shortenRow(amount: number, from: Direction): void {
         //should not be called directly, but instead through its parent Grid.reduceWidth method.
@@ -124,20 +136,35 @@ class Row {
             throw new Error('Cannot shorten row width below 0.')
         } else if (from === 'left') {
             for (let i = 0; i < amount; i++) {
-                this.contents.delete(this.left)
+                this.columns.delete(this.left)
             }
         } else if (from === 'right') {
             for (let i = 0; i < amount; i++) {
-                this.contents.delete(this.right)
+                this.columns.delete(this.right)
             }
         }
     }
 }
 
+/**
+ * Sets up a data structure to represent a two-dimensional plane with Rows of Cells. 
+ * Rows lie along the Y-axis and are able to be indexed by positive and negative coordinates.
+ * @example
+ * testGrid = new Grid(10,10)
+ * testGrid.row(-1).column(2)
+ * // Returns Cell with XYCoordinate (2,1)
+ */
 class Grid {
     rows: Map<number,Row> = new Map();
     constructor(width: number, height: number) {
         this.fillRows(generateCoordinateAxis(height),width)
+    }
+    /**
+     * Get the Row at the specified coordinate.
+     * @param YCoordinate a number that exists within the 
+     */
+    row(YCoordinate: number): Row {
+        return this.rows.get(YCoordinate)
     }
     get width(): number {
         return this.rows.get(this.bottom).width
@@ -166,6 +193,14 @@ class Grid {
         })
         return false
     }
+    /**
+     * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
+     * @param YAxis An axis generated by generateCoordinateAxis().
+     * @param width The desired width of the grid.
+     * @see generateCoordinateAxis
+     * @see Row
+     * @see Row.fillCells
+     */
     fillRows(YAxis: CoordinateAxis,width: number) {
         for (let i = 0; i < YAxis.length; i++) {
             this.rows.set( YAxis[i] , new Row(width,YAxis[i]) )
@@ -214,12 +249,14 @@ class Grid {
         }
     }
     increaseWidth(amount: number, to: Direction): void  {
-        this.rows.forEach((row)=>{
+        // adds given number
+        this.rows.forEach((row) => {
             row._expandRow(amount,to)
         })
     }
     reduceWidth(amount: number, from: Direction): void  {
-        this.rows.forEach((row)=>{
+        // removes given number of tiles from given side of every row in the Grid.
+        this.rows.forEach((row) => {
             row._shortenRow(amount,from)
         })
     }
@@ -232,14 +269,22 @@ class Grid {
     }
 }
 
+/**
+ * Generates an array of numbers representing labels on a coordinate axis. 
+ * Sizes are always made odd to allow a centre at (0,0). 
+ * @param size the desired total size of the axis. Should be odd.
+ * @returns Returns an array with a length equal to and a zero in the middle.
+ * @example
+ * generateCoordinateAxis(5)
+ * // Returns [-2,-1,0,1,2]
+ * @example
+ * generateCoordinateAxis(10)
+ * // Returns [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+ * @example 
+ * generateCoordinateAxis(1)
+ * // Returns [0]
+ */
 function generateCoordinateAxis(size: number): CoordinateAxis {
-    //Returns an array of length = size, centered at zero. sizes are always made odd to allow a centre at (0,0).
-    //  generateCoordinateAxis(5)
-    //  [-2,-1,0,1,2]
-    //  generateCoordinateAxis(10)
-    //  [-5,-4,-3,-2,-1,0,1,2,3,4,5]
-    //  generateCoordinateAxis(1)
-    //  [0]
     let distanceFromOrigin: number;
     let index = [];
     if (isEven(size)) {
@@ -253,13 +298,15 @@ function generateCoordinateAxis(size: number): CoordinateAxis {
 }
 
 function isEven(n: number): boolean {
-    if (n % 2 === 0) {
-        return true
-    } else {
-        return false
-    }
+    return n % 2 == 0;
 }
 
+/**
+ * Generate an array containing all the key names of a given map.
+ * @example
+ * parseMapKeysToArray({-1 => 'foo', 0 => 'bar', 1 => 'baz'})
+ * // returns [-1,0,1]
+ */
 function parseMapKeysToArray(map: Map<any,any>): Array<any> {
     let iterable = map.keys()
     let next;
@@ -273,10 +320,21 @@ function parseMapKeysToArray(map: Map<any,any>): Array<any> {
     return array
 }
 
-function concatenateMaps(sourceMap: Map<any,any>, targetMap: Map<any,any>): Map<any,any> {
-    sourceMap.forEach((value,key,map)=>{
-        targetMap.set(key,value)
+/**
+ * Appends all elements of the source map, in order, onto the end of the target map.
+ * Mutates the second map passed.
+ * Note: Expects that maps do not have overlapping key names.
+ * @param source the map to take elements from.
+ * @param target the map onto which elements are added.
+ * @returns the modified target map.
+ * @example
+ * concatenateMaps({1 => 'foo', 2 => 'foo', 3 => 'foo'}, {0 => 'baz'})
+ * // returns {0 => 'baz', 1 => 'foo', 2 => 'foo', 3 => 'foo'}
+ */
+function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map<any,any> {
+    source.forEach((value,key)=>{
+        target.set(key,value)
     })
-    return targetMap
+    return target
 }
 
