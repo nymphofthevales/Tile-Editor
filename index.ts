@@ -28,6 +28,7 @@ main_process.terminate = () => {
 
 type Coordinate = [number,number] 
 type CoordinateAxis = Array<number>
+type GridJSON = string
 type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
 type AdjacentDirection = 'topleft' | 'topright' | 'bottomleft' | 'bottomright'
@@ -47,10 +48,10 @@ class GridSelection {
         this.parentGrid = parentGrid
     }
     /**
-     * Sets the change in position desired for actions done on the selection. In future, these startX and startY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
+     * Sets the change in position desired for actions done on the selection. In future, these initialXY and finalXY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
      */
-    setPositionDelta(startXY: Coordinate,finalXY: Coordinate): void {
-        this.positionDelta = readPositionDelta(startXY,finalXY)
+    setPositionDelta(initialXY: Coordinate,finalXY: Coordinate): void {
+        this.positionDelta = readPositionDelta(initialXY,finalXY)
     }
     /**
      * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
@@ -62,14 +63,22 @@ class GridSelection {
         let [deltaX,deltaY] = this.positionDelta
         for (let i = 0; i < this.selection.length; i++) {
             let currentCell = this.selection[i]
-            let [startX,startY] = currentCell.XYCoordinate
-            let [finalX,finalY] = [startX + deltaX, startY + deltaY]
-            let destinationCell = this.parentGrid.cell(finalX,finalY)
+            let [initialX,initialY] = currentCell.XYCoordinate
+            let [finalX,finalY] = [initialX + deltaX, initialY + deltaY]
+            let destinationCell = this.parentGrid.cell([finalX,finalY])
             callback(currentCell,destinationCell,returnVariable,deltaX,deltaY,i)
         }
         if (returnVariable != undefined) {
             return returnVariable
         }
+    }
+    /**
+     * Adds the Cell at the given XY coordinate into the selection, if it exists.
+     * @param XYCoordinate 
+     */
+    select(XYCoordinate: Coordinate): void {
+        let cell = this.parentGrid.cell(XYCoordinate)
+        cell ? this.selection.push(cell) : null
     }
     /**
      * Moves selected cells to desired location.
@@ -91,17 +100,6 @@ class GridSelection {
         this.shift()
     }
     /**
-     * Moves selection to desired destination.
-     */
-    shift(): void {
-        let destinationSelection = []
-        this._iterateOverSelection((currentCell,destinationCell,destinationSelection)=>{
-            destinationSelection.push(destinationCell)
-        },destinationSelection)
-        this.clear()
-        this.selection = destinationSelection
-    }
-    /**
      * Fills each cell in the selection with the given data.
      * @param data The data with which to fill each cell.
      */
@@ -119,14 +117,26 @@ class GridSelection {
         })
     }
     /**
+     * Moves selection to desired destination.
+     */
+    shift(): void {
+        let destinationSelection = []
+        this._iterateOverSelection((currentCell,destinationCell,destinationSelection)=>{
+            destinationSelection.push(destinationCell)
+        },destinationSelection)
+        this.clear()
+        this.selection = destinationSelection
+    }
+    /**
      * Clears the current selection.
      */
     clear(): void {
         this.selection = []
     }
-
+    /**
+     * Exports the current selection to a JSON file to be rendered with a Grid renderer.
+     */
     export(): void {
-        //export the current selected area to JSON
     }
 }
 
@@ -290,13 +300,6 @@ class Grid {
         let YAxis = generateCoordinateAxis(height)
         this.fillRows(YAxis,width)
     }
-    /**
-     * Get the Row at the specified coordinate.
-     * @param YCoordinate a number that exists within the 
-     */
-    row(YCoordinate: number): Row {
-        return this.rows.get(YCoordinate)
-    }
     get width(): number {
         return this.rows.get(this.bottom).width
     }
@@ -312,8 +315,20 @@ class Grid {
     get CurrentYAxis(): Array<number> {
         return parseMapKeysToArray(this.rows)
     }
-    cell(x,y): Cell {
-        return this.row(y).column(x)
+    /**
+     * Get the Row at the specified coordinate.
+     * @param YCoordinate a number that exists within the 
+     */
+     row(YCoordinate: number): Row {
+        return this.rows.get(YCoordinate)
+    }
+    /**
+     * @returns Returns the Cell at the specified Coordinates in the Grid.
+     */
+     cell([x,y]: Coordinate): Cell {
+        let cell
+        cell = this.row(y) ? this.row(y).column(x) : undefined
+        return cell
     }
     /**
      * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
@@ -338,15 +353,15 @@ class Grid {
             this._addRowsToTop(amount,YAxis)
         }
     }
-    _addRowsToTop(amount: number,YAxis: CoordinateAxis) {
+    _addRowsToTop(amount: number,YAxis: CoordinateAxis): void {
         //continues after most recent elements in map; no change in order necessary
         let verticalPosition = this.top + 1
-        for (let i=0; i < amount; i++) {
+        for (let i = 0; i < amount; i++) {
             this.rows.set(verticalPosition, new Row(this.width,verticalPosition, this))
             verticalPosition++
         }
     }
-    _addRowsToBottom(amount: number,YAxis: CoordinateAxis) {
+    _addRowsToBottom(amount: number,YAxis: CoordinateAxis): void {
         //needs to add to the beginning of the map; reassignment of order necessary
         let verticalPosition = this.bottom - amount
         let oldMapCopy = new Map(this.rows)
@@ -382,10 +397,33 @@ class Grid {
             row._shortenRow(amount,from)
         })
     }
-    moveSelection(selection: GridSelection, from: Coordinate, to: Coordinate) {
+}
+
+class GridRenderer {
+    childGrid: Grid
+    tileset: object
+    constructor(childGrid: Grid,tileset?: object) {
+        document.createElement("div").id = "Grid_Renderer_Frame"
+        this.childGrid = childGrid
+        tileset? this.tileset = tileset : null
+    }
+    renderChildGrid() {
+
+    }
+    renderGridFromJSON(presetGrid: GridJSON) {
 
     }
 }
+class GridController {
+
+    constructor(attachedRenderer: GridRenderer) {
+
+    }
+    setupKeyboardListeners() {
+
+    }
+}
+
 
 function isEven(n: number): boolean {
     return n % 2 == 0;
@@ -438,6 +476,13 @@ function parseMapKeysToArray(map: Map<any,any>): Array<any> {
     return array
 }
 
+/**
+ * Measures the distance between two Coordinates.
+ * @returns Returns a coordinate pair representing the position delta.
+ * @example
+ * readPositionDelta([0,4],[3,-2])
+ * // Returns [3,-6]
+ */
 function readPositionDelta([initialX,initialY]: Coordinate,[finalX,finalY]: Coordinate): Coordinate {
     let deltaX = finalX - initialX
     let deltaY =  finalY - initialY
