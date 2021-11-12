@@ -30,6 +30,11 @@ type Coordinate = [number,number]
 type CoordinateAxis = Array<number>
 type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
+type AdjacentDirection = 'topleft' | 'topright' | 'bottomleft' | 'bottomright'
+/**
+ * Lists all Direction and AdjacentDirection strings in counterclockwise order.
+ */
+const Directions = ['topleft','top','topright','right','bottomright','bottom','bottomleft','left']
 
 class GridSelection {
     contents: Cell[] = []
@@ -54,12 +59,43 @@ class GridSelection {
     }
 }
 
+/**
+ * Sets up a data structure for an individual Cell in a Grid.
+ */
 class Cell {
+    parentRow: Row
+    parentGrid: Grid
     XYCoordinate: Coordinate
-    type: CellType
-
-    constructor(column: number,row: number) {
+    data: any
+    constructor(column: number, row: number, parentGrid: Grid, parentRow: Row) {
         this.XYCoordinate = [column,row];
+        this.parentRow = parentRow
+        this.parentGrid = parentGrid
+    }
+    /**
+     * Creates an object containing references to any adjacent cells, or undefined if there is none in that position.
+     * Includes diagonally adjacent cells, keyed by AdjacentDirection strings.
+     * @example
+     * let adjacent = fooCell.adjacentCells
+     * cellAbove = adjacent.top
+     * cellTopLeft = adjacent.topleft
+     * @returns Returns a Direction and AdjacentDirection keyed object.
+     * @see Direction
+     * @see AdjacentDirection
+    */
+    adjacentCells([x,y] = this.XYCoordinate): object {
+        let rowAbove = this.parentGrid.row(y + 1)
+        let rowBelow = this.parentGrid.row(y - 1)
+        return {
+            'top' : rowAbove ? rowAbove.column(x) : undefined,
+            'topleft': rowAbove ? rowAbove.column(x - 1) : undefined,
+            'topright': rowAbove ? rowAbove.column(x + 1) : undefined,
+            'bottom' : rowBelow ? rowAbove.column(x) : undefined,
+            'bottomleft': rowBelow ? rowAbove.column(x - 1) : undefined,
+            'bottomright': rowBelow ? rowAbove.column(x + 1) : undefined,
+            'left' : this.parentRow.column(x - 1),
+            'right': this.parentRow.column(x + 1)
+        }
     }
 }
 
@@ -68,12 +104,13 @@ class Cell {
  * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid
  */
 class Row {
+    parentGrid: Grid
     columns: Map<number,Cell> = new Map();
     verticalPosition: number = 0
-
-    constructor(width: number,verticalPosition: number) {
-        this.fillColumns(width,verticalPosition)
+    constructor(width: number,verticalPosition: number, parentGrid: Grid) {
+        this.parentGrid = parentGrid
         this.verticalPosition = verticalPosition;
+        this.fillColumns(width,verticalPosition)
     }
     get width(): number {
         return this.columns.size
@@ -87,20 +124,36 @@ class Row {
     get CurrentXAxis(): Array<number> {
         return parseMapKeysToArray(this.columns)
     }
+    get rowAbove() {
+        let YAbove = this.verticalPosition + 1
+        return this._getAdjacentRow(YAbove)
+    }
+    get rowBelow() {
+        let YBelow = this.verticalPosition - 1
+        return this._getAdjacentRow(YBelow)
+    }
+    _getAdjacentRow(position) {
+        return this.parentGrid.row(position)
+    }
     column(XCoordinate: number): Cell {
         return this.columns.get(XCoordinate)
     }
     /**
-     * Sets up basic structure of a Row 
+     * Sets up basic structure of a Row filled with Cells. Each Cell corresponds to a column in 2D space.
      * @param width 
      * @param verticalPosition 
      */
     fillColumns(width: number,verticalPosition: number): void {
         let XAxis = generateCoordinateAxis(width)
         for (let i = 0; i < XAxis.length; i++) {
-            this.columns.set( XAxis[i] , new Cell(XAxis[i],verticalPosition) )
+            this.columns.set( XAxis[i] , new Cell(XAxis[i], verticalPosition, this.parentGrid, this) )
         }
     }
+    /**
+     * Adds cells to one side of a Row. 
+     * @param amount Number of cells to add.
+     * @param to Direction string representing side of grid to which to add cells.
+     */
     _expandRow(amount: number, to: Direction): void {
         //should not be called directly, but instead through its parent Grid.increaseWidth method.
         if (to === "right") {
@@ -111,11 +164,12 @@ class Row {
             throw new Error('Invalid direction.')
         }
     }
+
     _addCellsToRight(amount: number) {
         //positive x values
         let rightmostPosition = this.right + 1
         for (let i = 0; i < amount; i++) {
-            this.columns.set(rightmostPosition,new Cell(rightmostPosition,this.verticalPosition))
+            this.columns.set(rightmostPosition,new Cell(rightmostPosition,this.verticalPosition, this.parentGrid, this))
             rightmostPosition++
         }
     }
@@ -125,7 +179,7 @@ class Row {
         let oldMapCopy = new Map(this.columns)
         this.columns.clear()
         for (let i = 0; i < amount; i++) {
-            this.columns.set(leftmostPosition,new Cell(leftmostPosition,this.verticalPosition))
+            this.columns.set(leftmostPosition,new Cell(leftmostPosition,this.verticalPosition, this.parentGrid, this))
             leftmostPosition++
         }
         this.columns = concatenateMaps(oldMapCopy,this.columns)
@@ -156,8 +210,9 @@ class Row {
  */
 class Grid {
     rows: Map<number,Row> = new Map();
-    constructor(width: number, height: number) {
-        this.fillRows(generateCoordinateAxis(height),width)
+    constructor(width: number = 1, height: number = 1) {
+        let YAxis = generateCoordinateAxis(height)
+        this.fillRows(YAxis,width)
     }
     /**
      * Get the Row at the specified coordinate.
@@ -181,29 +236,18 @@ class Grid {
     get CurrentYAxis(): Array<number> {
         return parseMapKeysToArray(this.rows)
     }
-    checkInconsistentRowWidths(): boolean {
-        let widths = []
-        this.rows.forEach((row,key)=>{
-            for (let i = 0; i < widths.length; i++) {
-                if (row.width != widths[i]) {
-                    throw new Error(`Inconsistent row widths in Grid at row ${key}`)
-                }
-            }
-            widths.push(row.width)
-        })
-        return false
-    }
+
     /**
      * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
      * @param YAxis An axis generated by generateCoordinateAxis().
      * @param width The desired width of the grid.
      * @see generateCoordinateAxis
      * @see Row
-     * @see Row.fillCells
+     * @see Row.fillColumns
      */
     fillRows(YAxis: CoordinateAxis,width: number) {
         for (let i = 0; i < YAxis.length; i++) {
-            this.rows.set( YAxis[i] , new Row(width,YAxis[i]) )
+            this.rows.set( YAxis[i] , new Row(width,YAxis[i], this) )
         }
     }
     increaseHeight(amount: number, to: Direction): void  {
@@ -220,7 +264,7 @@ class Grid {
         //continues after most recent elements in map; no change in order necessary
         let verticalPosition = this.top + 1
         for (let i=0; i < amount; i++) {
-            this.rows.set(verticalPosition, new Row(this.width,verticalPosition))
+            this.rows.set(verticalPosition, new Row(this.width,verticalPosition, this))
             verticalPosition++
         }
     }
@@ -230,7 +274,7 @@ class Grid {
         let oldMapCopy = new Map(this.rows)
         this.rows.clear()
         for (let i = 0; i < amount; i++) {
-            this.rows.set(verticalPosition,new Row(this.width,verticalPosition))
+            this.rows.set(verticalPosition,new Row(this.width,verticalPosition, this))
             verticalPosition++
         }
         this.rows = concatenateMaps(oldMapCopy,this.rows)
@@ -260,13 +304,13 @@ class Grid {
             row._shortenRow(amount,from)
         })
     }
-    shiftRow() {
-        //move whole row in vertical order
-        //redundant. serves same purpose as just running moveSelection() on a whole row.
-    }
     moveSelection(selection: GridSelection, from: Coordinate, to: Coordinate) {
 
     }
+}
+
+function isEven(n: number): boolean {
+    return n % 2 == 0;
 }
 
 /**
@@ -295,10 +339,6 @@ function generateCoordinateAxis(size: number): CoordinateAxis {
         index.push(-distanceFromOrigin + i)
     }
     return index
-}
-
-function isEven(n: number): boolean {
-    return n % 2 == 0;
 }
 
 /**
@@ -337,4 +377,3 @@ function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map<any,an
     })
     return target
 }
-
