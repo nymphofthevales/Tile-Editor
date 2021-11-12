@@ -26,7 +26,7 @@ main_process.terminate = () => {
     main_process.terminate_program = true
 }
 
-type Coordinate = [number,number]
+type Coordinate = [number,number] 
 type CoordinateAxis = Array<number>
 type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
@@ -36,25 +36,96 @@ type AdjacentDirection = 'topleft' | 'topright' | 'bottomleft' | 'bottomright'
  */
 const Directions = ['topleft','top','topright','right','bottomright','bottom','bottomleft','left']
 
+/**
+ * Represents a set of cells in a Grid on which operations can be done.
+ */
 class GridSelection {
-    contents: Cell[] = []
+    selection: Array<Cell> = []
+    parentGrid: Grid
+    positionDelta: Coordinate = [0,0]
+    constructor(parentGrid: Grid) {
+        this.parentGrid = parentGrid
+    }
+    /**
+     * Sets the change in position desired for actions done on the selection. In future, these startX and startY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
+     */
+    setPositionDelta(startXY: Coordinate,finalXY: Coordinate): void {
+        this.positionDelta = readPositionDelta(startXY,finalXY)
+    }
+    /**
+     * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
+     * @param callback A function to execute at each element in the selection.
+     * @param returnVariable Optional. A variable which can be modified by the callback function to pass back to the caller.
+     * @returns Returns void if no returnVariable is given, or returns whatever is assigned to the returnVariable.
+     */
+    _iterateOverSelection(callback: Function, returnVariable?: any): void | any {
+        let [deltaX,deltaY] = this.positionDelta
+        for (let i = 0; i < this.selection.length; i++) {
+            let currentCell = this.selection[i]
+            let [startX,startY] = currentCell.XYCoordinate
+            let [finalX,finalY] = [startX + deltaX, startY + deltaY]
+            let destinationCell = this.parentGrid.cell(finalX,finalY)
+            callback(currentCell,destinationCell,returnVariable,deltaX,deltaY,i)
+        }
+        if (returnVariable != undefined) {
+            return returnVariable
+        }
+    }
+    /**
+     * Moves selected cells to desired location.
+     */
+    move(): void {
+        this._iterateOverSelection((currentCell,destinationCell)=>{
+            destinationCell.data = currentCell.data
+        })
+        this.delete()
+        this.shift()
+    }
+    /**
+     * Switches selected cells with desired destination cells. 
+     */
+    swap(): void {
+        this._iterateOverSelection((currentCell,destinationCell) => {
+            [currentCell.data, destinationCell.data] = [destinationCell.data, currentCell.data]
+        })
+        this.shift()
+    }
+    /**
+     * Moves selection to desired destination.
+     */
+    shift(): void {
+        let destinationSelection = []
+        this._iterateOverSelection((currentCell,destinationCell,destinationSelection)=>{
+            destinationSelection.push(destinationCell)
+        },destinationSelection)
+        this.clear()
+        this.selection = destinationSelection
+    }
+    /**
+     * Fills each cell in the selection with the given data.
+     * @param data The data with which to fill each cell.
+     */
+    fill(data: any): void {
+        this._iterateOverSelection((currentCell)=>{
+            currentCell.data = data
+        })
+    }
+    /**
+     * Removes the data of each cell in the selection.
+     */
+    delete(): void {
+        this._iterateOverSelection((currentCell)=>{
+            currentCell.data = undefined
+        })
+    }
+    /**
+     * Clears the current selection.
+     */
+    clear(): void {
+        this.selection = []
+    }
 
-    constructor() {
-
-    }
-    move() {
-        //move the selected tiles to a new location
-    }
-    fill() {
-        //fill the selected tiles with a particular type
-    }
-    delete() {
-        //clear all selected tiles of their type (type -> none)
-    }
-    clear() {
-        //deselect the current selection
-    }
-    export() {
+    export(): void {
         //export the current selected area to JSON
     }
 }
@@ -124,9 +195,19 @@ class Row {
     get CurrentXAxis(): Array<number> {
         return parseMapKeysToArray(this.columns)
     }
+    /**
+     * @return Returns the Cell in the specified column.
+     * @param XCoordinate 
+     * @returns 
+     */
     column(XCoordinate: number): Cell {
         return this.columns.get(XCoordinate)
     }
+    /**
+     * Creates an object containing references to the row below and the row above, or undefined if there is none.
+     * @param y 
+     * @returns Returns a Direction keyed object.
+     */
     adjacentRows(y = this.verticalPosition) {
         return {
             'top' : this.parentGrid.row(y + 1),
@@ -231,7 +312,9 @@ class Grid {
     get CurrentYAxis(): Array<number> {
         return parseMapKeysToArray(this.rows)
     }
-
+    cell(x,y): Cell {
+        return this.row(y).column(x)
+    }
     /**
      * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
      * @param YAxis An axis generated by generateCoordinateAxis().
@@ -353,6 +436,12 @@ function parseMapKeysToArray(map: Map<any,any>): Array<any> {
         }
     } while (next.done === false)
     return array
+}
+
+function readPositionDelta([initialX,initialY]: Coordinate,[finalX,finalY]: Coordinate): Coordinate {
+    let deltaX = finalX - initialX
+    let deltaY =  finalY - initialY
+    return [deltaX, deltaY]
 }
 
 /**

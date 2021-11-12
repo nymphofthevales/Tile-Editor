@@ -24,21 +24,92 @@ main_process.terminate = () => {
  * Lists all Direction and AdjacentDirection strings in counterclockwise order.
  */
 const Directions = ['topleft', 'top', 'topright', 'right', 'bottomright', 'bottom', 'bottomleft', 'left'];
+/**
+ * Represents a set of cells in a Grid on which operations can be done.
+ */
 class GridSelection {
-    constructor() {
-        this.contents = [];
+    constructor(parentGrid) {
+        this.selection = [];
+        this.positionDelta = [0, 0];
+        this.parentGrid = parentGrid;
     }
+    /**
+     * Sets the change in position desired for actions done on the selection. In future, these startX and startY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
+     */
+    setPositionDelta(startXY, finalXY) {
+        this.positionDelta = readPositionDelta(startXY, finalXY);
+    }
+    /**
+     * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
+     * @param callback A function to execute at each element in the selection.
+     * @param returnVariable Optional. A variable which can be modified by the callback function to pass back to the caller.
+     * @returns Returns void if no returnVariable is given, or returns whatever is assigned to the returnVariable.
+     */
+    _iterateOverSelection(callback, returnVariable) {
+        let [deltaX, deltaY] = this.positionDelta;
+        for (let i = 0; i < this.selection.length; i++) {
+            let currentCell = this.selection[i];
+            let [startX, startY] = currentCell.XYCoordinate;
+            let [finalX, finalY] = [startX + deltaX, startY + deltaY];
+            let destinationCell = this.parentGrid.cell(finalX, finalY);
+            callback(currentCell, destinationCell, returnVariable, deltaX, deltaY, i);
+        }
+        if (returnVariable != undefined) {
+            return returnVariable;
+        }
+    }
+    /**
+     * Moves selected cells to desired location.
+     */
     move() {
-        //move the selected tiles to a new location
+        this._iterateOverSelection((currentCell, destinationCell) => {
+            destinationCell.data = currentCell.data;
+        });
+        this.delete();
+        this.shift();
     }
-    fill() {
-        //fill the selected tiles with a particular type
+    /**
+     * Switches selected cells with desired destination cells.
+     */
+    swap() {
+        this._iterateOverSelection((currentCell, destinationCell) => {
+            [currentCell.data, destinationCell.data] = [destinationCell.data, currentCell.data];
+        });
+        this.shift();
     }
+    /**
+     * Moves selection to desired destination.
+     */
+    shift() {
+        let destinationSelection = [];
+        this._iterateOverSelection((currentCell, destinationCell, destinationSelection) => {
+            destinationSelection.push(destinationCell);
+        }, destinationSelection);
+        this.clear();
+        this.selection = destinationSelection;
+    }
+    /**
+     * Fills each cell in the selection with the given data.
+     * @param data The data with which to fill each cell.
+     */
+    fill(data) {
+        this._iterateOverSelection((currentCell) => {
+            currentCell.data = data;
+        });
+    }
+    /**
+     * Removes the data of each cell in the selection.
+     */
     delete() {
-        //clear all selected tiles of their type (type -> none)
+        this._iterateOverSelection((currentCell) => {
+            currentCell.data = undefined;
+        });
     }
+    /**
+     * Clears the current selection.
+     */
     clear() {
-        //deselect the current selection
+        this.selection = [];
     }
     export() {
         //export the current selected area to JSON
@@ -103,9 +174,19 @@ class Row {
     get CurrentXAxis() {
         return parseMapKeysToArray(this.columns);
     }
+    /**
+     * @return Returns the Cell in the specified column.
+     * @param XCoordinate
+     * @returns
+     */
     column(XCoordinate) {
         return this.columns.get(XCoordinate);
     }
+    /**
+     * Creates an object containing references to the row below and the row above, or undefined if there is none.
+     * @param y
+     * @returns Returns a Direction keyed object.
+     */
     adjacentRows(y = this.verticalPosition) {
         return {
             'top': this.parentGrid.row(y + 1),
@@ -211,6 +292,9 @@ class Grid {
     }
     get CurrentYAxis() {
         return parseMapKeysToArray(this.rows);
+    }
+    cell(x, y) {
+        return this.row(y).column(x);
     }
     /**
      * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
@@ -332,6 +416,11 @@ function parseMapKeysToArray(map) {
         }
     } while (next.done === false);
     return array;
+}
+function readPositionDelta([initialX, initialY], [finalX, finalY]) {
+    let deltaX = finalX - initialX;
+    let deltaY = finalY - initialY;
+    return [deltaX, deltaY];
 }
 /**
  * Appends all elements of the source map, in order, onto the end of the target map.
