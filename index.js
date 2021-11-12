@@ -103,19 +103,14 @@ class Row {
     get CurrentXAxis() {
         return parseMapKeysToArray(this.columns);
     }
-    get rowAbove() {
-        let YAbove = this.verticalPosition + 1;
-        return this._getAdjacentRow(YAbove);
-    }
-    get rowBelow() {
-        let YBelow = this.verticalPosition - 1;
-        return this._getAdjacentRow(YBelow);
-    }
-    _getAdjacentRow(position) {
-        return this.parentGrid.row(position);
-    }
     column(XCoordinate) {
         return this.columns.get(XCoordinate);
+    }
+    adjacentRows(y = this.verticalPosition) {
+        return {
+            'top': this.parentGrid.row(y + 1),
+            'bottom': this.parentGrid.row(y - 1)
+        };
     }
     /**
      * Sets up basic structure of a Row filled with Cells. Each Cell corresponds to a column in 2D space.
