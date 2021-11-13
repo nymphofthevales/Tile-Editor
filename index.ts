@@ -32,6 +32,7 @@ type GridJSON = string
 type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
 type AdjacentDirection = 'topleft' | 'topright' | 'bottomleft' | 'bottomright'
+type QuantizedAngle = 0 | 90 | 270 | 360
 /**
  * Lists all Direction and AdjacentDirection strings in counterclockwise order.
  */
@@ -42,6 +43,7 @@ const Directions = ['topleft','top','topright','right','bottomright','bottom','b
  */
 class GridSelection {
     selection: Array<Cell> = []
+    clipboard: Array<Cell> = []
     parentGrid: Grid
     positionDelta: Coordinate = [0,0]
     constructor(parentGrid: Grid) {
@@ -82,6 +84,7 @@ class GridSelection {
     }
     /**
      * Moves selected cells to desired location.
+     * @see _iterateOverSelection
      */
     move(): void {
         this._iterateOverSelection((currentCell,destinationCell)=>{
@@ -92,6 +95,7 @@ class GridSelection {
     }
     /**
      * Switches selected cells with desired destination cells. 
+     * @see _iterateOverSelection
      */
     swap(): void {
         this._iterateOverSelection((currentCell,destinationCell) => {
@@ -102,6 +106,7 @@ class GridSelection {
     /**
      * Fills each cell in the selection with the given data.
      * @param data The data with which to fill each cell.
+     * @see _iterateOverSelection
      */
     fill(data: any): void {
         this._iterateOverSelection((currentCell)=>{
@@ -109,7 +114,24 @@ class GridSelection {
         })
     }
     /**
+     * Creates a copy of the current selection into the clipboard to be used later.
+     */
+    copy(): void {
+        this.clipboard = this.selection
+        this.clear()
+    }
+    /**
+     * Places a duplicate of the selection copied into the location selected, relative to the top-leftmost tile in the selection.
+     */
+    paste(): void {
+
+    }
+    rotate(center: Cell,amount: QuantizedAngle,clockwise: boolean): void {
+
+    }
+    /**
      * Removes the data of each cell in the selection.
+     * @see _iterateOverSelection
      */
     delete(): void {
         this._iterateOverSelection((currentCell)=>{
@@ -118,6 +140,7 @@ class GridSelection {
     }
     /**
      * Moves selection to desired destination.
+     * @see _iterateOverSelection
      */
     shift(): void {
         let destinationSelection = []
@@ -137,6 +160,29 @@ class GridSelection {
      * Exports the current selection to a JSON file to be rendered with a Grid renderer.
      */
     export(): void {
+    }
+    /**
+     * The root cell is the cell which all actions on the selection are done relative to. 
+     * By default, the root is the top-leftmost cell in the selection, though this can be changed with the direction flag.
+     * @see _iterateOverSelection
+     * In future, the direction and priority defaults should be determined in an options system.
+     */
+    getRootCell(direction: AdjacentDirection = "topleft",priority: Direction = "top"): Cell {
+        let rootCell
+        
+        this._iterateOverSelection((currentCell,destinationCell,rootCell)=>{
+            currentX = currentCell.XYCoordinate[]
+            rootCell = ? rootCell = currentCell : 
+        },rootCell)
+        return rootCell
+    }
+    parseRootCellDirection(direction: AdjacentDirection): Function {
+        switch (direction) {
+            case "topleft": return (currentX,furthestX,currentY,furthestY)=>{return currentX < furthestX || currentY > furthestY}
+                break;
+            case :
+                break;
+        }
     }
 }
 
@@ -182,7 +228,7 @@ class Cell {
 
 /**
  * Sets up a data structure for a linear row of cells accessible by X-coordinate indices.
- * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid
+ * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid.
  */
 class Row {
     parentGrid: Grid
@@ -289,10 +335,15 @@ class Row {
 /**
  * Sets up a data structure to represent a two-dimensional plane with Rows of Cells. 
  * Rows lie along the Y-axis and are able to be indexed by positive and negative coordinates.
+ * Provides two ways of accessing individual cells: through row, and by coordinate pair.
  * @example
  * testGrid = new Grid(10,10)
+ * testGrid.row(-1)
+ * // Returns Row at YCoordinate -1.
  * testGrid.row(-1).column(2)
- * // Returns Cell with XYCoordinate (2,1)
+ * // Returns Cell at XYCoordinate (2,-1)
+ * testGrid.cell([2,-1])
+ * // Returns Cell at XYCoordinate (2,-1)
  */
 class Grid {
     rows: Map<number,Row> = new Map();

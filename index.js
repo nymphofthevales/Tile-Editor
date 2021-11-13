@@ -162,7 +162,7 @@ class Cell {
 }
 /**
  * Sets up a data structure for a linear row of cells accessible by X-coordinate indices.
- * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid
+ * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid.
  */
 class Row {
     constructor(width, verticalPosition, parentGrid) {
@@ -270,10 +270,15 @@ class Row {
 /**
  * Sets up a data structure to represent a two-dimensional plane with Rows of Cells.
  * Rows lie along the Y-axis and are able to be indexed by positive and negative coordinates.
+ * Provides two ways of accessing individual cells: through row, and by coordinate pair.
  * @example
  * testGrid = new Grid(10,10)
+ * testGrid.row(-1)
+ * // Returns Row at YCoordinate -1.
  * testGrid.row(-1).column(2)
- * // Returns Cell with XYCoordinate (2,1)
+ * // Returns Cell at XYCoordinate (2,-1)
+ * testGrid.cell([2,-1])
+ * // Returns Cell at XYCoordinate (2,-1)
  */
 class Grid {
     constructor(width = 1, height = 1) {
