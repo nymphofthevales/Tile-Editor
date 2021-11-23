@@ -36,18 +36,19 @@ type QuantizedAngle = 0 | 90 | 270 | 360
 /**
  * Lists all Direction and AdjacentDirection strings in counterclockwise order.
  */
-const Directions = ['topleft','top','topright','right','bottomright','bottom','bottomleft','left']
+const Directions = ['topleft', 'top', 'topright', 'right', 'bottomright', 'bottom', 'bottomleft', 'left']
 
 /**
  * Represents a set of cells in a Grid on which operations can be done.
  */
 class GridSelection {
-    selection: Array<Cell> = []
-    clipboard: Array<Cell> = []
+    selection: Grid
+    clipboard: Grid
     parentGrid: Grid
     positionDelta: Coordinate = [0,0]
     constructor(parentGrid: Grid) {
         this.parentGrid = parentGrid
+        this.selection = new Grid(parentGrid.width,parentGrid.height,false,false)
     }
     /**
      * Sets the change in position desired for actions done on the selection. In future, these initialXY and finalXY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
@@ -63,12 +64,13 @@ class GridSelection {
      */
     _iterateOverSelection(callback: Function, returnVariable?: any): void | any {
         let [deltaX,deltaY] = this.positionDelta
-        for (let i = 0; i < this.selection.length; i++) {
-            let currentCell = this.selection[i]
-            let [initialX,initialY] = currentCell.XYCoordinate
-            let [finalX,finalY] = [initialX + deltaX, initialY + deltaY]
-            let destinationCell = this.parentGrid.cell([finalX,finalY])
-            callback(currentCell,destinationCell,returnVariable,deltaX,deltaY,i)
+        for (let row in this.selection.rows.keys()) {
+            // Needs to be rewritten to do something similar to this, but with the sorted map structure now available.
+            //let currentCell = 
+            //let [initialX,initialY] = currentCell.XYCoordinate
+            //let [finalX,finalY] = [initialX + deltaX, initialY + deltaY]
+            //let destinationCell = this.parentGrid.cell([finalX,finalY])
+            //callback(currentCell,destinationCell,returnVariable,deltaX,deltaY,i)
         }
         if (returnVariable != undefined) {
             return returnVariable
@@ -78,10 +80,27 @@ class GridSelection {
      * Adds the Cell at the given XY coordinate into the selection, if it exists.
      * @param XYCoordinate 
      */
-    select(XYCoordinate: Coordinate): void {
-        let cell = this.parentGrid.cell(XYCoordinate)
-        cell ? this.selection.push(cell) : null
+    select([cellX,cellY]: Coordinate): void {
+        let cellInParent = this.parentGrid.cell([cellX,cellY])
+        let storageRow
+        if (this.selection.row(cellY)) {
+            this._selectInKnownRow(storageRow,cellX,cellY)
+        } else {
+            storageRow = this.selection.rows.set(cellY, new Row(0,cellY,this.selection,false))
+            storageRow.columns.set(cellX, cellInParent)
+        }
+        
     }
+    _selectInNewRow() {
+
+    }
+    _selectInKnownRow(storageRow,cellX,cellY) {
+        storageRow = this.selection.row(cellY)
+        if (!storageRow.column(cellX)) {
+            storageRow.set(cellX,)
+        }
+    }
+    _select
     /**
      * Moves selected cells to desired location.
      * @see _iterateOverSelection
@@ -139,22 +158,24 @@ class GridSelection {
         })
     }
     /**
-     * Moves selection to desired destination.
+     * Moves selection to desired destination. Needs to be rewritten, but would function something like this.
      * @see _iterateOverSelection
      */
     shift(): void {
         let destinationSelection = []
-        this._iterateOverSelection((currentCell,destinationCell,destinationSelection)=>{
+        this._iterateOverSelection((currentCell,destinationCell,destinationSelection) => {
             destinationSelection.push(destinationCell)
         },destinationSelection)
         this.clear()
-        this.selection = destinationSelection
+        for (let i = 0; i < destinationSelection.length; i++) {
+            insertElementInCoordinateKeyedMap(this.selection.rows,destinationSelection[i])
+        }
     }
     /**
      * Clears the current selection.
      */
     clear(): void {
-        this.selection = []
+        this.selection.rows.clear()
     }
     /**
      * Exports the current selection to a JSON file to be rendered with a Grid renderer.
@@ -169,19 +190,35 @@ class GridSelection {
      */
     getRootCell(direction: AdjacentDirection = "topleft",priority: Direction = "top"): Cell {
         let rootCell
-        
+        let rootSearchLogic = this.parseRootCellDirection(direction)
         this._iterateOverSelection((currentCell,destinationCell,rootCell)=>{
-            currentX = currentCell.XYCoordinate[]
-            rootCell = ? rootCell = currentCell : 
+            let currentXY = currentCell.XYCoordinate
+            let lastFurthestXY = rootCell.XYCoordinate
+            rootCell = rootSearchLogic(currentXY,lastFurthestXY) ? currentCell : rootCell
         },rootCell)
+
         return rootCell
     }
+    /**
+     * 
+     * @param direction 
+     * @returns Returns an anonymous function containing the logic to determine the root cell from a set of XY coordinates and the XY coordinates of the last furthest tile identified.
+     * @see getRootCell
+     */
     parseRootCellDirection(direction: AdjacentDirection): Function {
         switch (direction) {
-            case "topleft": return (currentX,furthestX,currentY,furthestY)=>{return currentX < furthestX || currentY > furthestY}
-                break;
-            case :
-                break;
+            case "topleft": return ([currentX,currentY],[furthestX,furthestY]) => {
+                return currentX < furthestX || currentY > furthestY
+            }
+            case "topright": return ([currentX,currentY],[furthestX,furthestY]) => {
+                return currentX > furthestX || currentY > furthestY
+            }
+            case "bottomright": return ([currentX,currentY],[furthestX,furthestY]) => {
+                return currentX > furthestX || currentY > furthestY
+            }
+            case "bottomleft": return ([currentX,currentY],[furthestX,furthestY]) => {
+                return currentX < furthestX || currentY < furthestY
+            }
         }
     }
 }
@@ -234,10 +271,12 @@ class Row {
     parentGrid: Grid
     columns: Map<number,Cell> = new Map();
     verticalPosition: number = 0
-    constructor(width: number,verticalPosition: number, parentGrid: Grid) {
+    constructor(width: number, verticalPosition: number, parentGrid: Grid, fillCells: boolean = true) {
         this.parentGrid = parentGrid
         this.verticalPosition = verticalPosition;
-        this.fillColumns(width,verticalPosition)
+        if (fillCells === true) {
+            this.fillColumns(width,verticalPosition)
+        }
     }
     get width(): number {
         return this.columns.size
@@ -347,9 +386,11 @@ class Row {
  */
 class Grid {
     rows: Map<number,Row> = new Map();
-    constructor(width: number = 1, height: number = 1) {
+    constructor(width: number = 1, height: number = 1, fillRows: boolean = true, fillCells: boolean = true) {
         let YAxis = generateCoordinateAxis(height)
-        this.fillRows(YAxis,width)
+        if (fillRows === true) {
+            this.fillRows(width,YAxis,fillCells)
+        }
     }
     get width(): number {
         return this.rows.get(this.bottom).width
@@ -389,9 +430,9 @@ class Grid {
      * @see Row
      * @see Row.fillColumns
      */
-    fillRows(YAxis: CoordinateAxis,width: number) {
+    fillRows(width: number,YAxis: CoordinateAxis, fillCells: boolean = true) {
         for (let i = 0; i < YAxis.length; i++) {
-            this.rows.set( YAxis[i] , new Row(width,YAxis[i], this) )
+            this.rows.set( YAxis[i] , new Row(width,YAxis[i], this, fillCells) )
         }
     }
     increaseHeight(amount: number, to: Direction): void  {
@@ -483,8 +524,8 @@ function isEven(n: number): boolean {
 /**
  * Generates an array of numbers representing labels on a coordinate axis. 
  * Sizes are always made odd to allow a centre at (0,0). 
- * @param size the desired total size of the axis. Should be odd.
- * @returns Returns an array with a length equal to and a zero in the middle.
+ * @param size the desired total size of the axis. Should be odd for best results.
+ * @returns Returns an array with a length equal to size and a zero in the middle.
  * @example
  * generateCoordinateAxis(5)
  * // Returns [-2,-1,0,1,2]
@@ -497,15 +538,15 @@ function isEven(n: number): boolean {
  */
 function generateCoordinateAxis(size: number): CoordinateAxis {
     let distanceFromOrigin: number;
-    let index = [];
+    let axis = [];
     if (isEven(size)) {
         size += 1
     }
     distanceFromOrigin = Math.floor(size/2)
     for (let i = 0; i < size; i++) {
-        index.push(-distanceFromOrigin + i)
+        axis.push(-distanceFromOrigin + i)
     }
-    return index
+    return axis
 }
 
 /**
@@ -534,7 +575,7 @@ function parseMapKeysToArray(map: Map<any,any>): Array<any> {
  * readPositionDelta([0,4],[3,-2])
  * // Returns [3,-6]
  */
-function readPositionDelta([initialX,initialY]: Coordinate,[finalX,finalY]: Coordinate): Coordinate {
+function readPositionDelta( [initialX, initialY] : Coordinate, [finalX, finalY] : Coordinate) : Coordinate {
     let deltaX = finalX - initialX
     let deltaY =  finalY - initialY
     return [deltaX, deltaY]
@@ -557,3 +598,58 @@ function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map<any,an
     })
     return target
 }
+/**
+ * For an array sorted from negative to positive (or positive to negative if reversed = true), inserts a number
+ * in the position where the number on its left is smaller than it, and the number on its irght is larger than it,
+ * (in correct numerical order) by recursively halving the array and searching in the subarrays produced to finally produce
+ * the index desired.
+ * @param map 
+ */
+function insertElementInCoordinateKeyedMap(map: Map<number,any>,elementToInsert,reverse: boolean = false) {
+    let array = []
+    let elementIndex = elementToInsert.keys()[0]
+    map.forEach((value,key,map)=>{
+        let element = {}
+        element[key] = value
+        array.push(element)
+    })
+    array = insertElementByZenoSearch(array,elementIndex,false)
+    return array
+}
+
+function insertElementByZenoSearch(array:Array<number>, n:number, reversed: boolean = false): Array<number> {
+    let first = array[0]
+    let last = array[array.length - 1]
+    if (n < first || (n > first && reversed)) {
+        array.unshift(n)
+        return array
+    } else if (n > last || (n < last && reversed)) {
+        array.push(n)
+        return array
+    } else {
+        return iterateOverElementsForZenoSearch(array,n,reversed)
+    }
+}
+
+function iterateOverElementsForZenoSearch(array:Array<number>,n:number,reversed:boolean): Array<number> {
+    let iterations = 1
+    let index = 0
+    do {
+        index = generateIndexForZenoSearch(array.length,2**iterations,index)
+        let left = array[index]
+        let right = array[index + 1]
+        if (left < n || (left > n && reversed)) {
+            if (right > n || (right < n && reversed)) {
+                array.splice(index,0,n)
+                break
+            }
+        } else {
+            index = 0
+        }
+    } while (index > 1)
+    return array
+}
+function generateIndexForZenoSearch(length,partitions,previous): number {
+    return Math.floor((length - 1) / partitions) + previous
+}
+
