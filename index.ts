@@ -48,7 +48,12 @@ class GridSelection {
     positionDelta: Coordinate = [0,0]
     constructor(parentGrid: Grid) {
         this.parentGrid = parentGrid
-        this.selection = new Grid(parentGrid.width,parentGrid.height,false,false)
+        this.selection = new Grid(parentGrid.width, parentGrid.height, {
+            fillCells: false,
+            fillRows: false,
+            boundController: false,
+            boundRenderer: false
+        })
     }
     /**
      * Sets the change in position desired for actions done on the selection. In future, these initialXY and finalXY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
@@ -82,25 +87,27 @@ class GridSelection {
      */
     select([cellX,cellY]: Coordinate): void {
         let cellInParent = this.parentGrid.cell([cellX,cellY])
-        let storageRow
-        if (this.selection.row(cellY)) {
-            this._selectInKnownRow(storageRow,cellX,cellY)
-        } else {
-            storageRow = this.selection.rows.set(cellY, new Row(0,cellY,this.selection,false))
-            storageRow.columns.set(cellX, cellInParent)
-        }
-        
-    }
-    _selectInNewRow() {
-
-    }
-    _selectInKnownRow(storageRow,cellX,cellY) {
-        storageRow = this.selection.row(cellY)
-        if (!storageRow.column(cellX)) {
-            storageRow.set(cellX,)
+        if (this.parentGrid.hasCell([cellX, cellY])) {
+            if (this.selection.hasRow(cellY)) {
+                this._selectInKnownRow([cellX,cellY],cellInParent)
+            } else {
+                this._selectInNewRow([cellX,cellY],cellInParent)
+            }
         }
     }
-    _select
+    _selectInNewRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
+        let newEmptyRow = new Row(0,cellY,this.selection,false)
+        this.selection.rows = insertElementInMap(this.selection.rows, cellY, newEmptyRow)
+        let newRow = this.selection.row(cellY)
+        newRow.set(cellX, cellInParent)
+    }
+    _selectInKnownRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
+        let knownRow = this.selection.row(cellY)
+        if (knownRow.column(cellX) == undefined) {
+            knownRow.columns = insertElementInMap(knownRow.columns, cellX, cellInParent)
+        }
+    }
+   
     /**
      * Moves selected cells to desired location.
      * @see _iterateOverSelection
@@ -162,14 +169,7 @@ class GridSelection {
      * @see _iterateOverSelection
      */
     shift(): void {
-        let destinationSelection = []
-        this._iterateOverSelection((currentCell,destinationCell,destinationSelection) => {
-            destinationSelection.push(destinationCell)
-        },destinationSelection)
-        this.clear()
-        for (let i = 0; i < destinationSelection.length; i++) {
-            insertElementInCoordinateKeyedMap(this.selection.rows,destinationSelection[i])
-        }
+ 
     }
     /**
      * Clears the current selection.
@@ -188,7 +188,7 @@ class GridSelection {
      * @see _iterateOverSelection
      * In future, the direction and priority defaults should be determined in an options system.
      */
-    getRootCell(direction: AdjacentDirection = "topleft",priority: Direction = "top"): Cell {
+    getRootCell(direction: AdjacentDirection = "topleft", priority: Direction = "top"): Cell {
         let rootCell
         let rootSearchLogic = this.parseRootCellDirection(direction)
         this._iterateOverSelection((currentCell,destinationCell,rootCell)=>{
@@ -232,7 +232,7 @@ class Cell {
     XYCoordinate: Coordinate
     data: any
     constructor(column: number, row: number, parentGrid: Grid, parentRow: Row) {
-        this.XYCoordinate = [column,row];
+        this.XYCoordinate = [column,row]
         this.parentRow = parentRow
         this.parentGrid = parentGrid
     }
@@ -290,6 +290,9 @@ class Row {
     get CurrentXAxis(): Array<number> {
         return parseMapKeysToArray(this.columns)
     }
+    set(key: number, cell: Cell): void {
+        this.columns.set(key, cell)
+    }
     /**
      * @return Returns the Cell in the specified column.
      * @param XCoordinate 
@@ -297,6 +300,9 @@ class Row {
      */
     column(XCoordinate: number): Cell {
         return this.columns.get(XCoordinate)
+    }
+    hasCell(XCoordinate): boolean {
+        return this.column(XCoordinate) != undefined
     }
     /**
      * Creates an object containing references to the row below and the row above, or undefined if there is none.
@@ -317,7 +323,7 @@ class Row {
     fillColumns(width: number,verticalPosition: number): void {
         let XAxis = generateCoordinateAxis(width)
         for (let i = 0; i < XAxis.length; i++) {
-            this.columns.set( XAxis[i] , new Cell(XAxis[i], verticalPosition, this.parentGrid, this) )
+            this.set( XAxis[i] , new Cell(XAxis[i], verticalPosition, this.parentGrid, this) )
         }
     }
     /**
@@ -340,7 +346,7 @@ class Row {
         //positive x values
         let rightmostPosition = this.right + 1
         for (let i = 0; i < amount; i++) {
-            this.columns.set(rightmostPosition,new Cell(rightmostPosition,this.verticalPosition, this.parentGrid, this))
+            this.set(rightmostPosition,new Cell(rightmostPosition,this.verticalPosition, this.parentGrid, this))
             rightmostPosition++
         }
     }
@@ -350,7 +356,7 @@ class Row {
         let oldMapCopy = new Map(this.columns)
         this.columns.clear()
         for (let i = 0; i < amount; i++) {
-            this.columns.set(leftmostPosition,new Cell(leftmostPosition,this.verticalPosition, this.parentGrid, this))
+            this.set(leftmostPosition,new Cell(leftmostPosition,this.verticalPosition, this.parentGrid, this))
             leftmostPosition++
         }
         this.columns = concatenateMaps(oldMapCopy,this.columns)
@@ -386,10 +392,24 @@ class Row {
  */
 class Grid {
     rows: Map<number,Row> = new Map();
-    constructor(width: number = 1, height: number = 1, fillRows: boolean = true, fillCells: boolean = true) {
+    boundRenderer: GridRenderer
+    boundController: GridController
+    constructor(width: number = 1, height: number = 1, opts = {
+            fillRows: true, 
+            fillCells: true, 
+            boundRenderer: true, 
+            boundController: true
+            }
+        ) {
         let YAxis = generateCoordinateAxis(height)
-        if (fillRows === true) {
-            this.fillRows(width,YAxis,fillCells)
+        if (opts.fillRows) {
+            this.fillRows(width, YAxis, opts.fillCells)
+        }
+        if (opts.boundRenderer) {
+            this.boundRenderer = new GridRenderer(this)
+        }
+        if (opts.boundController) {
+            this.boundController = new GridController(this, this.boundRenderer)
         }
     }
     get width(): number {
@@ -408,10 +428,16 @@ class Grid {
         return parseMapKeysToArray(this.rows)
     }
     /**
+     * 
+     */
+    set(key: number, row: Row): void {
+        this.rows.set(key, row)
+    }
+    /**
      * Get the Row at the specified coordinate.
      * @param YCoordinate a number that exists within the 
      */
-     row(YCoordinate: number): Row {
+    row(YCoordinate: number): Row {
         return this.rows.get(YCoordinate)
     }
     /**
@@ -419,8 +445,18 @@ class Grid {
      */
      cell([x,y]: Coordinate): Cell {
         let cell
-        cell = this.row(y) ? this.row(y).column(x) : undefined
+        cell = this.hasRow(y) ? this.row(y).column(x) : undefined
         return cell
+    }
+    hasRow(YCoordinate: number): boolean {
+        return this.row(YCoordinate) != undefined
+    }
+    hasCell([cellX, cellY]: Coordinate): boolean {
+        if (this.hasRow(cellY)) {
+            return this.row(cellY).hasCell(cellX)
+        } else {
+            return false
+        }
     }
     /**
      * Sets up the basic structure of a 2D Grid as a map of rows accessible by Y-axis coordinates centered at an origin.
@@ -432,7 +468,7 @@ class Grid {
      */
     fillRows(width: number,YAxis: CoordinateAxis, fillCells: boolean = true) {
         for (let i = 0; i < YAxis.length; i++) {
-            this.rows.set( YAxis[i] , new Row(width,YAxis[i], this, fillCells) )
+            this.set( YAxis[i] , new Row(width,YAxis[i], this, fillCells) )
         }
     }
     increaseHeight(amount: number, to: Direction): void  {
@@ -449,7 +485,7 @@ class Grid {
         //continues after most recent elements in map; no change in order necessary
         let verticalPosition = this.top + 1
         for (let i = 0; i < amount; i++) {
-            this.rows.set(verticalPosition, new Row(this.width,verticalPosition, this))
+            this.set(verticalPosition, new Row(this.width,verticalPosition, this))
             verticalPosition++
         }
     }
@@ -459,7 +495,7 @@ class Grid {
         let oldMapCopy = new Map(this.rows)
         this.rows.clear()
         for (let i = 0; i < amount; i++) {
-            this.rows.set(verticalPosition,new Row(this.width,verticalPosition, this))
+            this.set(verticalPosition,new Row(this.width,verticalPosition, this))
             verticalPosition++
         }
         this.rows = concatenateMaps(oldMapCopy,this.rows)
@@ -491,16 +527,117 @@ class Grid {
     }
 }
 
+/**
+ * Sets up a renderer for a grid, 
+ * capable of creating or modifying html elements on the fly to reflect changes in the data.
+ */
 class GridRenderer {
     childGrid: Grid
     tileset: object
+    frame: HTMLElement
     constructor(childGrid: Grid,tileset?: object) {
-        document.createElement("div").id = "Grid_Renderer_Frame"
+        if (document.getElementById('Grid_Renderer_Frame') == undefined) {
+            let div = document.createElement("div")
+            document.body.appendChild(div).id = "Grid_Renderer_Frame"
+        }
+        this.frame = document.getElementById('Grid_Renderer_Frame')
+        this.frame.classList.add('grid-renderer-frame')
         this.childGrid = childGrid
         tileset? this.tileset = tileset : null
+        this.renderChildGridToHTML()
     }
-    renderChildGrid() {
-
+    renderChildGridToHTML() {
+        this.resolveData_DocumentDeltas()
+        //setup menus
+        //setup listening for changes in grid data
+    }
+    resolveData_DocumentDeltas() {
+        this.checkRowsInDocument()
+        this.checkCellsInDocument()
+        this.checkRowsInGrid()
+    }
+    checkRowsInGrid() {
+        this.childGrid.rows.forEach((row,YPosition,grid) => {
+            if (documentHasRow(YPosition)) {
+                this.checkCellsInRowInGrid(row,YPosition)
+            } else {
+                this.addRowToDocument(row,YPosition)
+            } 
+        })
+    }
+    checkCellsInRowInGrid(row,YPosition) {
+        row.columns.forEach((column,XPosition,grid) => {
+            if (!documentHasCell([XPosition,YPosition])) {
+                this.addCellToDocument([XPosition,YPosition])
+            }
+        })
+    }
+    checkRowsInDocument() {
+        let rows = document.getElementsByClassName('grid-row')
+        let removalQueue: Array<Node> = []
+        for (let i=0; i < rows.length; i++) {
+            let row = rows.item(i)
+            let id = row.id
+            let index = parseInt(id.split(' ')[1])
+            if (this.childGrid.hasRow(index) == false) {
+                removalQueue.push(row)
+            }
+        }
+        this.fulfillRowRemovalQueue(removalQueue)
+    }
+    checkCellsInDocument() {
+        let cells = document.getElementsByClassName('grid-cell')
+        let removalQueue: Array<[Node,number]> = []
+        for (let i = 0; i < cells.length; i++) {
+            let cell = cells.item(i)
+            let id = cell.id
+            let [itemName, XString, YString] = id.split(' ')
+            let [XPosition, YPosition] = [parseInt(XString), parseInt(YString)]
+            if (this.childGrid.hasCell([XPosition, YPosition]) == false) {
+                removalQueue.push([cell,YPosition])
+            }
+        }
+        this.fulfillCellRemovalQueue(removalQueue)
+    }
+    addRowToDocument(row,YPosition) {
+        let HTMLRow = document.createElement("div")
+        this.frame.appendChild(HTMLRow).id = `row ${YPosition}`
+        let HTMLRowReference = getRowReference(YPosition)
+        HTMLRowReference.classList.add('grid-row')
+        HTMLRowReference.style.order = `${YPosition}`
+        row.columns.forEach((column, XPosition, row) => {
+            if (!documentHasCell([XPosition, YPosition])) {
+                this.addCellToDocument([XPosition,YPosition])
+            }
+        })
+    }
+    addCellToDocument([XPosition, YPosition]: Coordinate) {
+        let div = document.createElement("div")
+        let HTMLRowReference = getRowReference(YPosition)
+        HTMLRowReference.appendChild(div).id = `cell ${XPosition} ${YPosition}`
+        let HTMLCellReference = getCellReference([XPosition, YPosition])
+        HTMLCellReference.classList.add('grid-cell')
+        HTMLCellReference.style.order = `${XPosition}`
+    }
+    fulfillRowRemovalQueue(removalQueue: Array<Node>) {
+        for (let i = 0; i < removalQueue.length; i++) {
+            let row = removalQueue[i]
+            this.removeRowFromDocument(row)
+        }
+    }
+    fulfillCellRemovalQueue(removalQueue: Array<[Node,number]>) {
+        for (let i = 0; i < removalQueue.length; i++) {
+            let cell = removalQueue[i][0]
+            let YPosition = removalQueue[i][1]
+            this.removeCellFromDocument(cell, YPosition)
+        }
+    }
+    removeRowFromDocument(row) {
+        this.frame.removeChild(row)
+    }
+    removeCellFromDocument(cell,YPosition) {
+        let row = getRowReference(YPosition)
+        row.removeChild(cell)
     }
     renderGridFromJSON(presetGrid: GridJSON) {
 
@@ -508,7 +645,7 @@ class GridRenderer {
 }
 class GridController {
 
-    constructor(attachedRenderer: GridRenderer) {
+    constructor(childGrid: Grid, boundRenderer: GridRenderer) {
 
     }
     setupKeyboardListeners() {
@@ -516,14 +653,50 @@ class GridController {
     }
 }
 
-
+/**
+ * Determines whether a number is even.
+ * @param n a whole number.
+ */
 function isEven(n: number): boolean {
     return n % 2 == 0;
 }
+/**
+ * Makes a number negative.
+ */
+function negative(n: number): number {
+    if (n >= 0) {
+        return -n
+    } else {
+        return n
+    }
+}
+/**
+ * Makes a number positive.
+*/
+function positive(n: number): number {
+    if (n >= 0) {
+        return n
+    } else {
+        return -n
+    }
+}
+
+function getRowReference(y: number) {
+    return document.getElementById(`row ${y}`)
+}
+function getCellReference([x,y]:Coordinate) {
+    return document.getElementById(`cell ${x} ${y}`)
+}
+function documentHasCell([x,y]: Coordinate): boolean {
+    return getCellReference([x,y]) != null
+}
+function documentHasRow(y: number): boolean {
+    return getRowReference(y)!= null
+}
 
 /**
- * Generates an array of numbers representing labels on a coordinate axis. 
- * Sizes are always made odd to allow a centre at (0,0). 
+ * Generates an array of numbers representing labels on a coordinate axis.
+ * Sizes are always made odd to allow a centre at (0,0).
  * @param size the desired total size of the axis. Should be odd for best results.
  * @returns Returns an array with a length equal to size and a zero in the middle.
  * @example
@@ -544,7 +717,7 @@ function generateCoordinateAxis(size: number): CoordinateAxis {
     }
     distanceFromOrigin = Math.floor(size/2)
     for (let i = 0; i < size; i++) {
-        axis.push(-distanceFromOrigin + i)
+        axis.push(negative(distanceFromOrigin) + i)
     }
     return axis
 }
@@ -605,51 +778,35 @@ function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map<any,an
  * the index desired.
  * @param map 
  */
-function insertElementInCoordinateKeyedMap(map: Map<number,any>,elementToInsert,reverse: boolean = false) {
+function insertElementInMap(map: Map<number,any>,indexToInsert: number, elementToInsert: any, reverse: boolean = false) {
     let array = []
-    let elementIndex = elementToInsert.keys()[0]
-    map.forEach((value,key,map)=>{
-        let element = {}
-        element[key] = value
-        array.push(element)
-    })
-    array = insertElementByZenoSearch(array,elementIndex,false)
-    return array
+    let comparatorFunction = getSortComparator(reverse)
+    let sortedMap = new Map();
+    array = fillArrayWithMapKeys(array, map)
+    array.push(indexToInsert)
+    array.sort(comparatorFunction)
+    for (let i= 0; i < array.length; i++) {
+        let key = array[i]
+        if (key == indexToInsert) {
+            sortedMap.set(key, elementToInsert)
+        } else {
+            sortedMap.set(key, map.get(key))
+        }
+    }
+    return sortedMap
 }
 
-function insertElementByZenoSearch(array:Array<number>, n:number, reversed: boolean = false): Array<number> {
-    let first = array[0]
-    let last = array[array.length - 1]
-    if (n < first || (n > first && reversed)) {
-        array.unshift(n)
-        return array
-    } else if (n > last || (n < last && reversed)) {
-        array.push(n)
-        return array
-    } else {
-        return iterateOverElementsForZenoSearch(array,n,reversed)
+function getSortComparator(reverse: boolean) {
+    switch (reverse) {
+        case false: return (a,b) => {return a - b}
+        case true: return (a,b) => {return b - a}
     }
 }
 
-function iterateOverElementsForZenoSearch(array:Array<number>,n:number,reversed:boolean): Array<number> {
-    let iterations = 1
-    let index = 0
-    do {
-        index = generateIndexForZenoSearch(array.length,2**iterations,index)
-        let left = array[index]
-        let right = array[index + 1]
-        if (left < n || (left > n && reversed)) {
-            if (right > n || (right < n && reversed)) {
-                array.splice(index,0,n)
-                break
-            }
-        } else {
-            index = 0
-        }
-    } while (index > 1)
+function fillArrayWithMapKeys(array, map: Map<number, any>) {
+    map.forEach((value,key,map)=>{
+        array.push(key)
+    })
     return array
-}
-function generateIndexForZenoSearch(length,partitions,previous): number {
-    return Math.floor((length - 1) / partitions) + previous
 }
 

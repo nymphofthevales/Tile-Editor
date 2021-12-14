@@ -1,0 +1,25 @@
+
+*{
+    box-sizing: border-box;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+
+.grid-renderer-frame {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.grid-row {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    height: 20px;
+}
+
+.grid-cell {
+    width: 50px;
+    height: 20px;
+    background-color: palegoldenrod;
+    border: 5px solid white;
+}
