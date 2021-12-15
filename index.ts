@@ -31,197 +31,16 @@ type CoordinateAxis = Array<number>
 type GridJSON = string
 type CellType = 'connection' | 'node' | 'none'
 type Direction = 'top' | 'bottom' | 'left' | 'right'
-type AdjacentDirection = 'topleft' | 'topright' | 'bottomleft' | 'bottomright'
+type AdjacentDirection = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 type QuantizedAngle = 0 | 90 | 270 | 360
 /**
- * Lists all Direction and AdjacentDirection strings in counterclockwise order.
+ * Lists all Direction and AdjacentDirection strings in clockwise order.
  */
-const Directions = ['topleft', 'top', 'topright', 'right', 'bottomright', 'bottom', 'bottomleft', 'left']
-
+const Directions = ['top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left']
 /**
- * Represents a set of cells in a Grid on which operations can be done.
+ * Lists the cardinal Direction strings in clockwise order.
  */
-class GridSelection {
-    selection: Grid
-    clipboard: Grid
-    parentGrid: Grid
-    positionDelta: Coordinate = [0,0]
-    constructor(parentGrid: Grid) {
-        this.parentGrid = parentGrid
-        this.selection = new Grid(parentGrid.width, parentGrid.height, {
-            fillCells: false,
-            fillRows: false,
-            boundController: false,
-            boundRenderer: false
-        })
-    }
-    /**
-     * Sets the change in position desired for actions done on the selection. In future, these initialXY and finalXY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
-     */
-    setPositionDelta(initialXY: Coordinate,finalXY: Coordinate): void {
-        this.positionDelta = readPositionDelta(initialXY,finalXY)
-    }
-    /**
-     * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
-     * @param callback A function to execute at each element in the selection.
-     * @param returnVariable Optional. A variable which can be modified by the callback function to pass back to the caller.
-     * @returns Returns void if no returnVariable is given, or returns whatever is assigned to the returnVariable.
-     */
-    _iterateOverSelection(callback: Function, returnVariable?: any): void | any {
-        let [deltaX,deltaY] = this.positionDelta
-        for (let row in this.selection.rows.keys()) {
-            // Needs to be rewritten to do something similar to this, but with the sorted map structure now available.
-            //let currentCell = 
-            //let [initialX,initialY] = currentCell.XYCoordinate
-            //let [finalX,finalY] = [initialX + deltaX, initialY + deltaY]
-            //let destinationCell = this.parentGrid.cell([finalX,finalY])
-            //callback(currentCell,destinationCell,returnVariable,deltaX,deltaY,i)
-        }
-        if (returnVariable != undefined) {
-            return returnVariable
-        }
-    }
-    /**
-     * Adds the Cell at the given XY coordinate into the selection, if it exists.
-     * @param XYCoordinate 
-     */
-    select([cellX,cellY]: Coordinate): void {
-        let cellInParent = this.parentGrid.cell([cellX,cellY])
-        if (this.parentGrid.hasCell([cellX, cellY])) {
-            if (this.selection.hasRow(cellY)) {
-                this._selectInKnownRow([cellX,cellY],cellInParent)
-            } else {
-                this._selectInNewRow([cellX,cellY],cellInParent)
-            }
-        }
-    }
-    _selectInNewRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
-        let newEmptyRow = new Row(0,cellY,this.selection,false)
-        this.selection.rows = insertElementInMap(this.selection.rows, cellY, newEmptyRow)
-        let newRow = this.selection.row(cellY)
-        newRow.set(cellX, cellInParent)
-    }
-    _selectInKnownRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
-        let knownRow = this.selection.row(cellY)
-        if (knownRow.column(cellX) == undefined) {
-            knownRow.columns = insertElementInMap(knownRow.columns, cellX, cellInParent)
-        }
-    }
-   
-    /**
-     * Moves selected cells to desired location.
-     * @see _iterateOverSelection
-     */
-    move(): void {
-        this._iterateOverSelection((currentCell,destinationCell)=>{
-            destinationCell.data = currentCell.data
-        })
-        this.delete()
-        this.shift()
-    }
-    /**
-     * Switches selected cells with desired destination cells. 
-     * @see _iterateOverSelection
-     */
-    swap(): void {
-        this._iterateOverSelection((currentCell,destinationCell) => {
-            [currentCell.data, destinationCell.data] = [destinationCell.data, currentCell.data]
-        })
-        this.shift()
-    }
-    /**
-     * Fills each cell in the selection with the given data.
-     * @param data The data with which to fill each cell.
-     * @see _iterateOverSelection
-     */
-    fill(data: any): void {
-        this._iterateOverSelection((currentCell)=>{
-            currentCell.data = data
-        })
-    }
-    /**
-     * Creates a copy of the current selection into the clipboard to be used later.
-     */
-    copy(): void {
-        this.clipboard = this.selection
-        this.clear()
-    }
-    /**
-     * Places a duplicate of the selection copied into the location selected, relative to the top-leftmost tile in the selection.
-     */
-    paste(): void {
-
-    }
-    rotate(center: Cell,amount: QuantizedAngle,clockwise: boolean): void {
-
-    }
-    /**
-     * Removes the data of each cell in the selection.
-     * @see _iterateOverSelection
-     */
-    delete(): void {
-        this._iterateOverSelection((currentCell)=>{
-            currentCell.data = undefined
-        })
-    }
-    /**
-     * Moves selection to desired destination. Needs to be rewritten, but would function something like this.
-     * @see _iterateOverSelection
-     */
-    shift(): void {
- 
-    }
-    /**
-     * Clears the current selection.
-     */
-    clear(): void {
-        this.selection.rows.clear()
-    }
-    /**
-     * Exports the current selection to a JSON file to be rendered with a Grid renderer.
-     */
-    export(): void {
-    }
-    /**
-     * The root cell is the cell which all actions on the selection are done relative to. 
-     * By default, the root is the top-leftmost cell in the selection, though this can be changed with the direction flag.
-     * @see _iterateOverSelection
-     * In future, the direction and priority defaults should be determined in an options system.
-     */
-    getRootCell(direction: AdjacentDirection = "topleft", priority: Direction = "top"): Cell {
-        let rootCell
-        let rootSearchLogic = this.parseRootCellDirection(direction)
-        this._iterateOverSelection((currentCell,destinationCell,rootCell)=>{
-            let currentXY = currentCell.XYCoordinate
-            let lastFurthestXY = rootCell.XYCoordinate
-            rootCell = rootSearchLogic(currentXY,lastFurthestXY) ? currentCell : rootCell
-        },rootCell)
-
-        return rootCell
-    }
-    /**
-     * 
-     * @param direction 
-     * @returns Returns an anonymous function containing the logic to determine the root cell from a set of XY coordinates and the XY coordinates of the last furthest tile identified.
-     * @see getRootCell
-     */
-    parseRootCellDirection(direction: AdjacentDirection): Function {
-        switch (direction) {
-            case "topleft": return ([currentX,currentY],[furthestX,furthestY]) => {
-                return currentX < furthestX || currentY > furthestY
-            }
-            case "topright": return ([currentX,currentY],[furthestX,furthestY]) => {
-                return currentX > furthestX || currentY > furthestY
-            }
-            case "bottomright": return ([currentX,currentY],[furthestX,furthestY]) => {
-                return currentX > furthestX || currentY > furthestY
-            }
-            case "bottomleft": return ([currentX,currentY],[furthestX,furthestY]) => {
-                return currentX < furthestX || currentY < furthestY
-            }
-        }
-    }
-}
+const PerpendicularDirections = ['top', 'right', 'bottom', 'left']
 
 /**
  * Sets up a data structure for an individual Cell in a Grid.
@@ -247,16 +66,17 @@ class Cell {
      * @see Direction
      * @see AdjacentDirection
     */
-    adjacentCells([x,y] = this.XYCoordinate): object {
+    get adjacentCells(): object {
+        let [x,y] = this.XYCoordinate
         let rowAbove = this.parentGrid.row(y + 1)
         let rowBelow = this.parentGrid.row(y - 1)
         return {
             'top' : rowAbove ? rowAbove.column(x) : undefined,
-            'topleft': rowAbove ? rowAbove.column(x - 1) : undefined,
-            'topright': rowAbove ? rowAbove.column(x + 1) : undefined,
-            'bottom' : rowBelow ? rowAbove.column(x) : undefined,
-            'bottomleft': rowBelow ? rowAbove.column(x - 1) : undefined,
-            'bottomright': rowBelow ? rowAbove.column(x + 1) : undefined,
+            'top-left': rowAbove ? rowAbove.column(x - 1) : undefined,
+            'top-right': rowAbove ? rowAbove.column(x + 1) : undefined,
+            'bottom' : rowBelow ? rowBelow.column(x) : undefined,
+            'bottom-left': rowBelow ? rowBelow.column(x - 1) : undefined,
+            'bottom-right': rowBelow ? rowBelow.column(x + 1) : undefined,
             'left' : this.parentRow.column(x - 1),
             'right': this.parentRow.column(x + 1)
         }
@@ -394,22 +214,30 @@ class Grid {
     rows: Map<number,Row> = new Map();
     boundRenderer: GridRenderer
     boundController: GridController
+    boundSelector: GridSelector
+    identifier: string
     constructor(width: number = 1, height: number = 1, opts = {
             fillRows: true, 
             fillCells: true, 
             boundRenderer: true, 
-            boundController: true
+            boundController: true,
+            boundSelector: true,
+            targetElement: document.body
             }
         ) {
+        this.identifier = getUniqueIdentifierString()
         let YAxis = generateCoordinateAxis(height)
         if (opts.fillRows) {
             this.fillRows(width, YAxis, opts.fillCells)
         }
         if (opts.boundRenderer) {
-            this.boundRenderer = new GridRenderer(this)
+            this.boundRenderer = new GridRenderer(this, opts.targetElement)
         }
         if (opts.boundController) {
             this.boundController = new GridController(this, this.boundRenderer)
+        }
+        if (opts.boundSelector) {
+            this.boundSelector = new GridSelector(this)
         }
     }
     get width(): number {
@@ -493,9 +321,10 @@ class Grid {
         //needs to add to the beginning of the map; reassignment of order necessary
         let verticalPosition = this.bottom - amount
         let oldMapCopy = new Map(this.rows)
+        let width = this.width
         this.rows.clear()
         for (let i = 0; i < amount; i++) {
-            this.set(verticalPosition,new Row(this.width,verticalPosition, this))
+            this.set(verticalPosition,new Row(width,verticalPosition, this))
             verticalPosition++
         }
         this.rows = concatenateMaps(oldMapCopy,this.rows)
@@ -526,7 +355,214 @@ class Grid {
         })
     }
 }
+/**
+ * Represents a set of cells in a Grid on which operations can be done.
+ */
+ class GridSelector{
+    selection: Grid
+    clipboard: Grid
+    parentGrid: Grid
+    identifier: string
+    positionDelta: Coordinate = [0,0]
+    constructor(parentGrid: Grid) {
+        this.parentGrid = parentGrid
+        this.identifier = parentGrid.identifier
+        this.selection = new Grid(parentGrid.width, parentGrid.height, {
+            fillCells: false,
+            fillRows: false,
+            boundController: false,
+            boundRenderer: false,
+            boundSelector: false,
+            targetElement: document.body
+        })
+    }
+    /**
+     * Sets the change in position desired for actions done on the selection. In future, these initialXY and finalXY values will be provided by a mousedown and mouseup event listener on the selected and destination tiles. Deltas read from top-leftmost cell of selection.
+     */
+    setPositionDelta(initialXY: Coordinate,finalXY: Coordinate): void {
+        this.positionDelta = readPositionDelta(initialXY,finalXY)
+    }
+    /**
+     * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
+     * @param callback A function to execute at each element in the selection.
+     * @param returnVariable Optional. A variable which can be modified by the callback function to pass back to the caller.
+     * @returns Returns void if no returnVariable is given, or returns whatever is assigned to the returnVariable.
+     */
+    _iterateOverSelection(callback: Function, returnVariable?: any): void | any {
+        let [deltaX,deltaY] = this.positionDelta
+        this.selection.rows.forEach((currentRow, YPosition, selection) =>{
+            currentRow.columns.forEach((currentCell, XPosition, row) => {
+                let [initialX, initialY] = [XPosition, YPosition]
+                let [finalX, finalY] = [initialX + deltaX, initialY + deltaY]
+                let destinationCell = this.parentGrid.cell([finalX, finalY])
+                callback({
+                    initialPosition: [initialX, initialY],
+                    finalPosition: [finalX, finalY],
+                    currentCell: currentCell,
+                    destinationCell: destinationCell,
+                })
+            } )
+        })
+        if (returnVariable != undefined) {
+            return returnVariable
+        }
+    }
+    batchSelect(cells: Array<Coordinate>): void {
+        for (let i = 0; i < cells.length; i++) {
+            this.select(cells[i])
+        }
+    }
+    /**
+     * Adds the Cell at the given XY coordinate into the selection, if it exists.
+     * @param XYCoordinate 
+     */
+    select([cellX,cellY]: Coordinate): void {
+        let cellInParent = this.parentGrid.cell([cellX,cellY])
+        if (this.parentGrid.hasCell([cellX, cellY])) {
+            if (this.selection.hasRow(cellY)) {
+                this._selectInKnownRow([cellX,cellY],cellInParent)
+            } else {
+                this._selectInNewRow([cellX,cellY],cellInParent)
+            }
+        }
+    }
+    _selectInNewRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
+        let newEmptyRow = new Row(0,cellY,this.selection,false)
+        this.selection.rows = insertElementInMap(this.selection.rows, cellY, newEmptyRow)
+        let newRow = this.selection.row(cellY)
+        newRow.set(cellX, cellInParent)
+    }
+    _selectInKnownRow([cellX, cellY]: Coordinate, cellInParent: Cell): void {
+        let knownRow = this.selection.row(cellY)
+        if (knownRow.column(cellX) == undefined) {
+            knownRow.columns = insertElementInMap(knownRow.columns, cellX, cellInParent)
+        }
+    }
+    /**
+     * Remove a cell from the current selection.
+     */
+    deselect([cellX, cellY]: Coordinate): void {
+        if (this.selection.hasRow(cellY)) {
+            let row = this.selection.row(cellY)
+            if (row.hasCell(cellX)) {
+                row.columns.delete(cellX)
+            }
+        }
+    }
+    /**
+     * Moves selected cells to desired location.
+     * @see _iterateOverSelection
+     */
+    move(positionDelta): void {
+        this.positionDelta = positionDelta
+        this._iterateOverSelection((params)=>{
+            params.destinationCell.data = params.currentCell.data
+        })
+        this.delete()
+        this.shift(positionDelta)
+    }
+    /**
+     * Switches selected cells with desired destination cells. 
+     * @see _iterateOverSelection
+     */
+    swap(positionDelta): void {
+        this.positionDelta = positionDelta
+        this._iterateOverSelection((params) => {
+            [params.currentCell.data, params.destinationCell.data] = [params.destinationCell.data, params.currentCell.data]
+        })
+    }
+    /**
+     * Fills each cell in the selection with the given data.
+     * @param data The data with which to fill each cell.
+     * @see _iterateOverSelection
+     */
+    fill(data: any): void {
+        this._iterateOverSelection((currentCell)=>{
+            currentCell.data = data
+        })
+    }
+    /**
+     * Creates a copy of the current selection into the clipboard to be used later.
+     */
+    copy(): void {
+        this.clipboard = Object.assign({},this.selection)
+    }
+    cut() {
+        this.copy()
+        this.clear()
+    }
+    /**
+     * Places a duplicate of the selection copied into the location selected, relative to the top-leftmost tile in the selection.
+     */
+    paste(positionDelta): void {
+        this.positionDelta = positionDelta
+        this._iterateOverSelection((params) => {
 
+        })
+    }
+    clearClipboard(): void  {
+        this.clipboard.rows.clear()
+    }
+    rotate(center: Cell,amount: QuantizedAngle,clockwise: boolean): void {
+
+    }
+    /**
+     * Removes the data of each cell in the selection.
+     * @see _iterateOverSelection
+     */
+    delete(): void {
+        this._iterateOverSelection((params)=>{
+            params.currentCell.data = undefined
+        })
+    }
+    /**
+     * Moves selection to desired destination.
+     * @see _iterateOverSelection
+     */
+    shift(positionDelta: Coordinate): void {
+        this.positionDelta = positionDelta
+        let selectionDelta = {
+            current: [],
+            result: []
+        }
+        selectionDelta = this._iterateOverSelection((params) => {
+            selectionDelta.current.push(params.initialPosition)
+            selectionDelta.result.push(params.finalPosition)
+        }, selectionDelta)
+        this.clear()
+        for (let i = 0; i < selectionDelta.result.length; i++) {
+            let cell = selectionDelta.result[i]
+            if (selectionDelta.current.includes(cell) == false) {
+                this.select(cell)
+            }
+        }
+    }
+    /**
+     * Clears the current selection.
+     */
+    clear(): void {
+        this.selection.rows.clear()
+    }
+    /**
+     * Exports the current selection to a JSON file to be rendered with a Grid renderer.
+     */
+    export(): void {
+    }
+    /**
+     * The root cell is the cell which all actions on the selection are done relative to. 
+     * By default, the root is the top-leftmost cell in the selection, though this can be changed with the direction flag.
+     * Top is prioritized; that is, even if a piece is further left than another, the higher one will be returned.
+     * @see _iterateOverSelection
+     */
+    getRootCell(direction: AdjacentDirection = "top-left"): Cell {
+        let [vertical, horizontal] = direction.split('-')
+        let YPosition = this.selection[vertical]
+        let row = this.selection.row(YPosition)
+        let XPosition = row[horizontal]
+        let rootCell = row.column(XPosition)
+        return rootCell
+    }
+}
 /**
  * Sets up a renderer for a grid, 
  * capable of creating or modifying html elements on the fly to reflect changes in the data.
@@ -535,21 +571,87 @@ class GridRenderer {
     childGrid: Grid
     tileset: object
     frame: HTMLElement
-    constructor(childGrid: Grid,tileset?: object) {
-        if (document.getElementById('Grid_Renderer_Frame') == undefined) {
-            let div = document.createElement("div")
-            document.body.appendChild(div).id = "Grid_Renderer_Frame"
+    identifier: string
+    styles = {
+        grid: {
+            BGColor: 'palegoldenrod',
+            borderDefault: '1px dotted lightseagreen'
+        },
+        selection: {
+            BGColor: 'inherit',//'#a0dba3;'
+            borderEdge: '2px solid lightseagreen'
         }
-        this.frame = document.getElementById('Grid_Renderer_Frame')
-        this.frame.classList.add('grid-renderer-frame')
+    }
+    constructor(childGrid: Grid, target: HTMLElement = document.body, tileset?: object) {
+        this.identifier = childGrid.identifier
         this.childGrid = childGrid
-        tileset? this.tileset = tileset : null
+        this.tileset = tileset? tileset : undefined
+        this.createFrame(target)
         this.renderChildGridToHTML()
+    }
+    createFrame(targetElement: HTMLElement): void {
+        if (document.getElementById("Grid_Renderer_Frame" + this.identifier) == null) {
+            let div = document.createElement("div")
+            targetElement.appendChild(div).id = "Grid_Renderer_Frame_" + this.identifier
+            this.frame = document.getElementById('Grid_Renderer_Frame_' + this.identifier)
+            this.frame.classList.add('grid-renderer-frame')
+        }
     }
     renderChildGridToHTML() {
         this.resolveData_DocumentDeltas()
         //setup menus
         //setup listening for changes in grid data
+    }
+   renderSelection(): void {
+        let selector = this.childGrid.boundSelector
+        selector._iterateOverSelection((opts) => {
+            this.renderSelectedCell(opts.initialPosition)
+        })
+    }
+    renderSelectedCell([cellX, cellY]: Coordinate): void {
+        let currentCell = this.childGrid.cell([cellX, cellY])
+        let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
+        HTMLCellReference.classList.add('selected')
+        this.renderAdjacentCellBorders(currentCell, HTMLCellReference)
+    }
+    renderAdjacentCellBorders(currentCell: Cell, HTMLCellReference: HTMLElement): void {
+        let selector = this.childGrid.boundSelector
+        let adjacencies = currentCell.adjacentCells
+        for (let i = 0; i < PerpendicularDirections.length; i++) {
+            let direction = PerpendicularDirections[i]
+            let adjacentCell= adjacencies[direction]
+            let border = HTMLCellReference.style
+            if (adjacentCell != undefined) {
+                if (selector.selection.hasCell(adjacentCell.XYCoordinate) == false) {
+                    border['border-' + direction] = this.styles.selection.borderEdge
+                } else {
+                    border['border-' + direction] = this.styles.grid.borderDefault
+                }
+            } else {
+                border['border-' + direction] = this.styles.selection.borderEdge
+            }
+        }
+    }
+    /**
+     * Resets grid to be totally deselected. Definitely the most inefficient way to do this. Runs in On^2 time.
+     */
+    removeSelection(): void {
+        this.childGrid.rows.forEach((row,YPosition,grid) =>{
+            row.columns.forEach((column,XPosition) =>{
+                this.deselectCell([XPosition, YPosition])
+            })
+        })
+    }
+    deselectCell([cellX, cellY]: Coordinate): void {
+        let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
+        HTMLCellReference.classList.remove('selected')
+        this.removeCellBorders([cellX, cellY], HTMLCellReference)
+    }
+    removeCellBorders([cellX, cellY]: Coordinate, HTMLCellReference: HTMLElement): void {
+        for (let i = 0; i < PerpendicularDirections.length; i++) {
+            let direction = PerpendicularDirections[i]
+            HTMLCellReference.style['border-' + direction] = this.styles.grid.borderDefault
+        }
     }
     resolveData_DocumentDeltas() {
         this.checkRowsInDocument()
@@ -558,7 +660,7 @@ class GridRenderer {
     }
     checkRowsInGrid() {
         this.childGrid.rows.forEach((row,YPosition,grid) => {
-            if (documentHasRow(YPosition)) {
+            if (documentHasRow(YPosition,this.identifier)) {
                 this.checkCellsInRowInGrid(row,YPosition)
             } else {
                 this.addRowToDocument(row,YPosition)
@@ -567,13 +669,13 @@ class GridRenderer {
     }
     checkCellsInRowInGrid(row,YPosition) {
         row.columns.forEach((column,XPosition,grid) => {
-            if (!documentHasCell([XPosition,YPosition])) {
+            if (!documentHasCell([XPosition,YPosition], this.identifier)) {
                 this.addCellToDocument([XPosition,YPosition])
             }
         })
     }
     checkRowsInDocument() {
-        let rows = document.getElementsByClassName('grid-row')
+        let rows = document.getElementsByClassName('grid-row-in-' + this.identifier)
         let removalQueue: Array<Node> = []
         for (let i=0; i < rows.length; i++) {
             let row = rows.item(i)
@@ -586,7 +688,7 @@ class GridRenderer {
         this.fulfillRowRemovalQueue(removalQueue)
     }
     checkCellsInDocument() {
-        let cells = document.getElementsByClassName('grid-cell')
+        let cells = document.getElementsByClassName('grid-cell-in-' + this.identifier)
         let removalQueue: Array<[Node,number]> = []
         for (let i = 0; i < cells.length; i++) {
             let cell = cells.item(i)
@@ -601,23 +703,27 @@ class GridRenderer {
     }
     addRowToDocument(row,YPosition) {
         let HTMLRow = document.createElement("div")
-        this.frame.appendChild(HTMLRow).id = `row ${YPosition}`
-        let HTMLRowReference = getRowReference(YPosition)
+        this.frame.appendChild(HTMLRow).id = `row ${YPosition}` + ' ' + this.identifier
+        let HTMLRowReference = getRowReference(YPosition, this.identifier)
         HTMLRowReference.classList.add('grid-row')
+        HTMLRowReference.classList.add('grid-row-in-' + this.identifier)
         HTMLRowReference.style.order = `${YPosition}`
         row.columns.forEach((column, XPosition, row) => {
-            if (!documentHasCell([XPosition, YPosition])) {
+            if (!documentHasCell([XPosition, YPosition], this.identifier)) {
                 this.addCellToDocument([XPosition,YPosition])
             }
         })
     }
     addCellToDocument([XPosition, YPosition]: Coordinate) {
         let div = document.createElement("div")
-        let HTMLRowReference = getRowReference(YPosition)
-        HTMLRowReference.appendChild(div).id = `cell ${XPosition} ${YPosition}`
-        let HTMLCellReference = getCellReference([XPosition, YPosition])
+        let HTMLRowReference = getRowReference(YPosition, this.identifier)
+        HTMLRowReference.appendChild(div).id = `cell ${XPosition} ${YPosition}` + ' ' + this.identifier
+        let HTMLCellReference = getCellReference([XPosition, YPosition], this.identifier)
         HTMLCellReference.classList.add('grid-cell')
+        HTMLCellReference.classList.add('grid-cell-in-' + this.identifier)
         HTMLCellReference.style.order = `${XPosition}`
+        HTMLCellReference.style.backgroundColor = this.styles.grid.BGColor
+        HTMLCellReference.style.border = this.styles.grid.borderDefault
     }
     fulfillRowRemovalQueue(removalQueue: Array<Node>) {
         for (let i = 0; i < removalQueue.length; i++) {
@@ -636,7 +742,7 @@ class GridRenderer {
         this.frame.removeChild(row)
     }
     removeCellFromDocument(cell,YPosition) {
-        let row = getRowReference(YPosition)
+        let row = getRowReference(YPosition, this.identifier)
         row.removeChild(cell)
     }
     renderGridFromJSON(presetGrid: GridJSON) {
@@ -644,9 +750,11 @@ class GridRenderer {
     }
 }
 class GridController {
-
+    childGrid: Grid
+    boundRenderer: GridRenderer
     constructor(childGrid: Grid, boundRenderer: GridRenderer) {
-
+        this.childGrid = childGrid
+        this.boundRenderer = boundRenderer
     }
     setupKeyboardListeners() {
 
@@ -681,17 +789,17 @@ function positive(n: number): number {
     }
 }
 
-function getRowReference(y: number) {
-    return document.getElementById(`row ${y}`)
+function getRowReference(y: number, identifier: string) {
+    return document.getElementById(`row ${y}` + ' ' + identifier)
 }
-function getCellReference([x,y]:Coordinate) {
-    return document.getElementById(`cell ${x} ${y}`)
+function getCellReference([x,y]:Coordinate, identifier: string) {
+    return document.getElementById(`cell ${x} ${y}` + ' ' + identifier)
 }
-function documentHasCell([x,y]: Coordinate): boolean {
-    return getCellReference([x,y]) != null
+function documentHasCell([x,y]: Coordinate, identifier: string): boolean {
+    return getCellReference([x,y], identifier) != null
 }
-function documentHasRow(y: number): boolean {
-    return getRowReference(y)!= null
+function documentHasRow(y: number, identifier: string): boolean {
+    return getRowReference(y, identifier)!= null
 }
 
 /**
@@ -773,15 +881,13 @@ function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map<any,an
 }
 /**
  * For an array sorted from negative to positive (or positive to negative if reversed = true), inserts a number
- * in the position where the number on its left is smaller than it, and the number on its irght is larger than it,
- * (in correct numerical order) by recursively halving the array and searching in the subarrays produced to finally produce
- * the index desired.
+ * in the position where the number on its left is smaller than it, and the number on its right is larger than it.
  * @param map 
  */
 function insertElementInMap(map: Map<number,any>,indexToInsert: number, elementToInsert: any, reverse: boolean = false) {
     let array = []
-    let comparatorFunction = getSortComparator(reverse)
     let sortedMap = new Map();
+    let comparatorFunction = getSortComparator(reverse)
     array = fillArrayWithMapKeys(array, map)
     array.push(indexToInsert)
     array.sort(comparatorFunction)
@@ -810,3 +916,36 @@ function fillArrayWithMapKeys(array, map: Map<number, any>) {
     return array
 }
 
+function getUniqueIdentifierString() : string {
+    let date = new Date()
+    let time = date.getUTCMilliseconds()
+    let seed = Math.floor(Math.random()*10000)
+    let identifier = time + seed
+    return identifier.toString()
+}
+
+function setupTestGrid() {
+    let testGrid = new Grid(15,15)
+    testGrid.boundSelector.batchSelect([
+        [0,0],
+        [0,1],
+        [1,1],
+        [2,2],
+        [1,2],
+        [3,2],
+        [-1,2],
+        [-2,-1],
+        [4,4],
+        [4,3],
+        [4,2]
+    ])
+    testGrid.boundRenderer.renderChildGridToHTML()
+    testGrid.boundRenderer.renderSelection()
+    return testGrid
+}
+
+function testShiftSelection([deltaX, deltaY], testGrid) {
+    testGrid.boundSelector.shift([deltaX, deltaY])
+    testGrid.boundRenderer.removeSelection()
+    testGrid.boundRenderer.renderSelection()
+}
