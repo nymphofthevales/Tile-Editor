@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "A dev tool for creating tiled maps or graphics.",
   "main": "main.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "",
   "license": "ISC",
   "devDependencies": {
