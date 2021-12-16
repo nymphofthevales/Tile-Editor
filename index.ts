@@ -1,13 +1,13 @@
-import { Direction, AdjacentDirection, Directions, PerpendicularDirections } from "./Direction"
-import { Coordinate, CoordinateAxis } from "./Coordinate"
-import { getUniqueIdentifier } from "./numerical_helpers"
-import { Grid, Row, Cell } from "./Grid"
+import { Direction, AdjacentDirection, Directions, PerpendicularDirections } from "./Direction.js"
+import { Coordinate, CoordinateAxis } from "./Coordinate.js"
+import { getUniqueIdentifier } from "./numerical_helpers.js"
+import { Grid, Row, Cell, GridSelector, generateGridFromPreset, GridPreset } from "./Grid.js"
 
 /**
  * Sets up a renderer for a grid, 
  * capable of creating or modifying html elements on the fly to reflect changes in the data.
  */
-export class GridRenderer {
+class GridRenderer {
     tileset: object
     frame: HTMLElement
     identifier: string
@@ -34,14 +34,20 @@ export class GridRenderer {
             this.frame.classList.add('grid-renderer-frame')
         }
     }
-    render(grid: Grid) {
-        this.resolveData_DocumentDeltas(grid)
-        this.renderSelection(grid)
-        //setup menus
-        //setup listening for changes in grid data
+    staticRenderPreset(preset: GridPreset) {
+        let grid = generateGridFromPreset(preset)
+        this.staticRender(grid)
     }
-   renderSelection(grid: Grid): void {
-        let selector = grid.boundSelector
+    staticRender(grid: Grid) {
+
+    }
+    dynamicRender(grid: Grid, gridSelector: GridSelector) {
+        this.resolveData_DocumentDeltas(grid)
+        this.renderSelection(gridSelector)
+    }
+    
+    renderSelection(selector: GridSelector): void {
+       let grid = selector.childGrid
         selector._iterateOverSelection((opts) => {
             this.renderCellSelection(grid, opts.initialPosition)
         })
@@ -69,6 +75,22 @@ export class GridRenderer {
                 border['border-' + direction] = this.styles.selection.borderEdge
             }
         }
+    }
+    /**
+     * Takes in a user-defined callback function for extracting tileset keys from cell data.
+    */
+    renderTileset(grid: Grid, callback?: Function) {
+        let sum = 0
+        sum = grid.forEach(() => {
+            sum += 1
+        }, sum)
+        console.log(sum)
+        let all = []
+        all = grid.forEach((cell) => {
+            all.push(cell.XYCoordinate)
+        }, all)
+        console.log(all)
+        let HTMLCellReference = getCellReference([0,0], grid.identifier)
     }
     /**
      * Resets grid to be totally deselected. Definitely the most inefficient way to do this. Runs in On^2 time.
@@ -181,9 +203,6 @@ export class GridRenderer {
         let row = getRowReference(YPosition, this.identifier)
         row.removeChild(cell)
     }
-    renderPreset() {
-
-    }
 }
 class GridController {
     boundRenderer: GridRenderer
@@ -245,3 +264,9 @@ function testShiftSelection([deltaX, deltaY], testGrid) {
     testGrid.boundRenderer.renderSelection()
 }
 
+
+let testGrid = setupTestGrid()
+let r = new GridRenderer()
+r.dynamicRender(testGrid, testGrid.boundSelector)
+
+r.renderTileset(testGrid,() => {})

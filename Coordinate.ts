@@ -1,4 +1,4 @@
-import { isEven, absNegative } from './numerical_helpers'
+import { isEven, absNegative } from './numerical_helpers.js'
 
 export type Coordinate = [number,number] 
 export type CoordinateAxis = Array<number>

@@ -1,11 +1,12 @@
-import { generateCoordinateAxis, readPositionDelta } from "./Coordinate";
-import { parseMapKeysToArray, concatenateMaps, insertElementInMap } from "./map_helpers";
-import { getUniqueIdentifier } from "./numerical_helpers";
+import { generateCoordinateAxis, readPositionDelta } from "./Coordinate.js";
+import { parseMapKeysToArray, concatenateMaps, insertElementInMap } from "./map_helpers.js";
+import { getUniqueIdentifier } from "./numerical_helpers.js";
 /**
  * Sets up a data structure for an individual Cell in a Grid.
  */
 export class Cell {
     constructor(column, row, parentGrid, parentRow) {
+        this.data = undefined;
         this.XYCoordinate = [column, row];
         this.parentRow = parentRow;
         this.parentGrid = parentGrid;
@@ -213,6 +214,16 @@ export class Grid {
         cell = this.hasRow(y) ? this.row(y).column(x) : undefined;
         return cell;
     }
+    forEach(callback, returnVariable) {
+        this.rows.forEach((row, YPosition, grid) => {
+            row.columns.forEach((cell, XPosition, grid) => {
+                callback(cell, grid, returnVariable);
+            });
+        });
+        if (returnVariable != undefined) {
+            return returnVariable;
+        }
+    }
     hasRow(YCoordinate) {
         return this.row(YCoordinate) != undefined;
     }
@@ -300,14 +311,14 @@ export class Grid {
  * Represents a set of cells in a Grid on which operations can be done.
  */
 export class GridSelector {
-    constructor(parentGrid) {
+    constructor(grid) {
         this.positionDelta = [0, 0];
-        this.parentGrid = parentGrid;
-        this.identifier = parentGrid.identifier;
+        this.childGrid = grid;
+        this.identifier = grid.identifier;
         let emptyGridParams = {
             fillCells: false,
             fillRows: false,
-            boundSelector: false,
+            boundSelector: false
         };
         this.selection = new Grid(0, 0, emptyGridParams);
         this.clipboard = new Grid(0, 0, emptyGridParams);
@@ -333,7 +344,7 @@ export class GridSelector {
             currentRow.columns.forEach((currentCell, XPosition, row) => {
                 let [initialX, initialY] = [XPosition, YPosition];
                 let [finalX, finalY] = [initialX + deltaX, initialY + deltaY];
-                let destinationCell = this.parentGrid.cell([finalX, finalY]);
+                let destinationCell = this.childGrid.cell([finalX, finalY]);
                 callback({
                     initialPosition: [initialX, initialY],
                     finalPosition: [finalX, finalY],
@@ -356,26 +367,26 @@ export class GridSelector {
      * @param XYCoordinate
      */
     select([cellX, cellY]) {
-        let cellInParent = this.parentGrid.cell([cellX, cellY]);
-        if (this.parentGrid.hasCell([cellX, cellY])) {
+        let childCell = this.childGrid.cell([cellX, cellY]);
+        if (this.childGrid.hasCell([cellX, cellY])) {
             if (this.selection.hasRow(cellY)) {
-                this._selectInKnownRow([cellX, cellY], cellInParent);
+                this._selectInKnownRow([cellX, cellY], childCell);
             }
             else {
-                this._selectInNewRow([cellX, cellY], cellInParent);
+                this._selectInNewRow([cellX, cellY], childCell);
             }
         }
     }
-    _selectInNewRow([cellX, cellY], cellInParent) {
+    _selectInNewRow([cellX, cellY], childCell) {
         let newEmptyRow = new Row(0, cellY, this.selection, false);
         this.selection.rows = insertElementInMap(this.selection.rows, cellY, newEmptyRow);
         let newRow = this.selection.row(cellY);
-        newRow.set(cellX, cellInParent);
+        newRow.set(cellX, childCell);
     }
-    _selectInKnownRow([cellX, cellY], cellInParent) {
+    _selectInKnownRow([cellX, cellY], childCell) {
         let knownRow = this.selection.row(cellY);
         if (knownRow.column(cellX) == undefined) {
-            knownRow.columns = insertElementInMap(knownRow.columns, cellX, cellInParent);
+            knownRow.columns = insertElementInMap(knownRow.columns, cellX, childCell);
         }
     }
     /**
@@ -501,3 +512,36 @@ export class GridSelector {
         return rootCell;
     }
 }
+/**
+ * Performs strangely for even-dimensional grids. Data will still be in their proper cells,
+ * but if a grid of width
+ */
+export function generateGridFromPreset(preset) {
+    let presetGrid = new Grid(preset.width, preset.height, {});
+    preset.cells.forEach((presetCell, index, array) => {
+        presetGrid.cell(presetCell.position).data = presetCell.data;
+    });
+    return presetGrid;
+}
+let preset = {
+    "width": 0,
+    "height": 0,
+    "cells": [
+        {
+            "position": [0, 0],
+            "data": {
+                "direction": "left-up-down-right",
+                "type": "tile"
+            }
+        },
+        {
+            "position": [1, 1],
+            "data": {
+                "direction": "left-right",
+                "type": "node",
+                "unlocked": true,
+                "pageObjects": ["castRunes", "readRunes"]
+            }
+        },
+    ]
+};

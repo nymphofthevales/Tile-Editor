@@ -1,4 +1,4 @@
-import { isEven, absNegative } from './numerical_helpers';
+import { isEven, absNegative } from './numerical_helpers.js';
 /**
  * Generates an array of numbers representing labels on a coordinate axis.
  * Sizes are always made odd to allow a centre at (0,0).
