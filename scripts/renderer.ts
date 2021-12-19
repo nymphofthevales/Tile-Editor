@@ -1,7 +1,8 @@
-import { Direction, AdjacentDirection, Directions, PerpendicularDirections } from "./Direction.js"
-import { Coordinate, CoordinateAxis } from "./Coordinate.js"
+
+import { Direction, AdjacentDirection, Directions, PerpendicularDirections } from "./direction.js"
+import { Coordinate, CoordinateAxis } from "./coordinate.js"
 import { getUniqueIdentifier } from "./numerical_helpers.js"
-import { Grid, Row, Cell, GridSelector, generateGridFromPreset, GridPreset } from "./Grid.js"
+import { Grid, Row, Cell, GridSelector, generateGridFromPreset, GridPreset } from "./grid.js"
 
 /**
  * Sets up a renderer for a grid, 
