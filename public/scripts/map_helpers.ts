@@ -39,7 +39,7 @@ export function concatenateMaps(source: Map<any,any>, target: Map<any,any>): Map
  * in the position where the number on its left is smaller than it, and the number on its right is larger than it.
  * @param map 
  */
-export function insertElementInMap(map: Map<number,any>,indexToInsert: number, elementToInsert: any, reverse: boolean = false) {
+export function insertElementInMap(map: Map<number,any>,indexToInsert: number, elementToInsert: any, reverse: boolean = false): Map<number,any> {
     let array = []
     let sortedMap = new Map();
     let comparatorFunction = getSortComparator(reverse)
