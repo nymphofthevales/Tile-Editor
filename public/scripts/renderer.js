@@ -41,12 +41,12 @@ export class GridRenderer {
     constructor(target = document.body, tileset) {
         this.styles = {
             grid: {
-                BGColor: 'palegoldenrod',
-                borderDefault: '1px dotted lightseagreen'
+                BGColor: 'black',
+                borderDefault: '1px dotted white'
             },
             selection: {
                 BGColor: 'inherit',
-                borderEdge: '2px solid lightseagreen'
+                borderEdge: '2px solid white'
             }
         };
         this.identifier = getUniqueIdentifier().toString();

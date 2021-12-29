@@ -3,9 +3,10 @@ import { GridSelector } from  "./scripts/selector.js"
 import { GridRenderer } from "./scripts/renderer.js"
 
 
-let g= new Grid(15,15)
+let g= new Grid(20,20)
 let s = new GridSelector(g)
-let r = new GridRenderer()
+let target = document.getElementById('grid-mount')
+let r = new GridRenderer(target)
 s.batchSelect([
     [0,0],
     [0,1],
@@ -27,4 +28,27 @@ cells = g.forEachCell((cell, grid, cells) => {
     return cells
 }, cells)
 console.log(cells)
+
+document.getElementById("CTRL-BASIC-MOVE")
+document.getElementById("CTRL-BASIC-FILL")
+document.getElementById("CTRL-BASIC-COPY")
+document.getElementById("CTRL-BASIC-PASTE")
+document.getElementById("CTRL-BASIC-DELETE")
+
+document.getElementById("CTRL-SELECTIONMODE-CELL")
+document.getElementById("CTRL-SELECTIONMODE-ROW")
+document.getElementById("CTRL-SELECTIONMODE-COLUMN")
+document.getElementById("CTRL-SELECTIONMODE-AREA")
+
+document.getElementById("CTRL-SELECTION-ADD")
+document.getElementById("CTRL-SELECTION-REMOVE")
+document.getElementById("CTRL-SELECTION-ADJUST")
+document.getElementById("CTRL-SELECTION-ALL")
+document.getElementById("CTRL-SELECTION-CLEAR")
+
+document.getElementById("CTRL-GENERAL-UNDO")
+document.getElementById("CTRL-GENERAL-REDO")
+document.getElementById("CTRL-GENERAL-EXPAND")
+document.getElementById("CTRL-GENERAL-SHRINK")
+document.getElementById("CTRL-GENERAL-CROP")
 

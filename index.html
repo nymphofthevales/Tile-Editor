@@ -7,14 +7,132 @@
     <link rel="stylesheet" href="/stylesheet.css">
 </head>
 <body>
-    <div id="application-frame">
-        <div id="message-popup"></div>
-        <div id="open-menu">
-            <header>TILE EDITOR</header>
+    <main class="fill-screen">
+        <div id="application-frame" class="opaque fill-screen">
+            <div id="application" class="fill-parent horz-flex">
+                <div id="controller-menu" class="opaque outlined">
+                    <nav id="controller-nav">
+                        <button id="CTRL-NAV-TOOLS">Tools</button>
+                        <button id="CTRL-NAV-TILES">Tiles</button>
+                        <button id="CTRL-NAV-OPTIONS">Options</button>
+                        <button id="CTRL-NAV-QUIT">Quit</button>
+                    </nav>
+                    <div id="controller-content">
+                        <div id="controller-tools">
+                            <fieldset id="controller-selection-modes-frame" class="controller-tools-fieldset">
+                                <legend>Selection Mode</legend>
+                                <div id="CTRL-SELECTION-MODES" class="controller-buttonset">
+                                    <button id="CTRL-SELECTIONMODE-CELL">Cell</button>
+                                    <button id="CTRL-SELECTIONMODE-ROW">Row</button>
+                                    <button id="CTRL-SELECTIONMODE-COLUMN">Column</button>
+                                    <button id="CTRL-SELECTIONMODE-AREA">Area</button>
+                                </div>
+                            </fieldset>
+                            <fieldset id="controller-basic-tools-frame" class="controller-tools-fieldset">
+                                <legend>Basic Tools</legend>
+                                <div id="CTRL-BASIC-TOOLS-BUTTONSET" class="controller-buttonset">
+                                    <button id="CTRL-BASIC-MOVE">Move</button>
+                                    <button id="CTRL-BASIC-FILL">Fill</button>
+                                    <button id="CTRL-BASIC-COPY">Copy</button>
+                                    <button id="CTRL-BASIC-PASTE">Paste</button>
+                                    <button id="CTRL-BASIC-DELETE">Delete</button>
+                                </div>
+                            </fieldset>
+                            <fieldset id="controller-selection-tools-frame" class="controller-tools-fieldset">
+                                <legend>Selection Tools</legend>
+                                <div id="CTRL-SELECTION-TOOLS-BUTTONSET" class="controller-buttonset">
+                                    <button id="CTRL-SELECTION-ADD">Add to Selection</button>
+                                    <button id="CTRL-SELECTION-REMOVE">Remove from Selection</button>
+                                    <button id="CTRL-SELECTION-ADJUST">Adjust Selection</button>
+                                    <button id="CTRL-SELECTION-ALL">Select All</button>
+                                    <button id="CTRL-SELECTION-CLEAR">Clear Selection</button>
+                                </div>
+                            </fieldset>
+                            <fieldset id="controller-general-tools-frame" class="controller-tools-fieldset">
+                                <legend>General Tools</legend>
+                                <div id="CTRL-BASIC-TOOLS-BUTTONSET" class="controller-buttonset">
+                                    <button id="CTRL-GENERAL-UNDO">Undo</button>
+                                    <button id="CTRL-GENERAL-REDO">Redo</button>
+                                    <button id="CTRL-GENERAL-EXPAND">Expand Workspace</button>
+                                    <button id="CTRL-GENERAL-SHRINK">Shrink Workspace</button>
+                                    <button id="CTRL-GENERAL-CROP">Crop To Selection</button>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div id="controller-tiles">
+                            <div class="tile-selector-frame">
+                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
+                                    <img src="filename.png" alt="filename">
+                                    <p>filename</p>
+                                </button>
+                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
+                                    <img src="filename.png" alt="filename">
+                                    <p>filename</p>
+                                </button>
+                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
+                                    <img src="filename.png" alt="filename">
+                                    <p>filename</p>
+                                </button>
+                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
+                                    <img src="filename.png" alt="filename">
+                                    <p>filename</p>
+                                </button>
+                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
+                                    <img src="filename.png" alt="filename">
+                                    <p>filename</p>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="controller-options">
+
+                        </div>
+                    </div>
+                </div>
+                <div id="grid-mount" class="opaque outlined fill-parent"></div>
+                <button id="CTRL-MENU-TOGGLE">toggle menu</button>
+            </div>
         </div>
-        <div id="controller-menu"></div>
-        <div></div>
-    </div>
+        <div id="main-menu" class="fill-screen opaque hidden">
+            <div id="main-menu-content" class="center">
+                <h1>TILED MAP EDITOR V2</h1>
+                <button id="MENU-NEW" class="MENU-BUTTON outlined">
+                    <p>New Map</p>
+                </button>
+                <button id="MENU-LOAD" class="MENU-BUTTON outlined">
+                    <p>Load Map</p>
+                </button>
+                <button id="MENU-OPTIONS" class="MENU-BUTTON outlined">
+                    <p>Options</p>
+                </button>
+            </div>
+            <div id="map-setup-frame" class="fill-screen hidden">
+                <div id="map-setup-popup" class="center outlined opaque">
+                    <label for="NEWMAP-FORM">
+                        <h2>New map settings</h2>
+                    </label>
+                    <form action="javascript:void(0);" id="NEWMAP-FORM" class="outlined vert-flex">
+                        <label for="NEWMAP-WIDTH" class="setup-form-label">Width</label>
+                        <input type="number" value="10" name="NEWMAP-WIDTH" id="NEWMAP-WIDTH">
+                        <label for="NEWMAP-HEIGHT" class="setup-form-label">Height</label>
+                        <input type="number" value="10" name="NEWMAP-HEIGHT" id="NEWMAP-HEIGHT">
+                        <label for="NEWMAP-TILESET" class="setup-form-label">Tileset:</label>
+                        <input type="file" name="NEWMAP-TILESET" id="NEWMAP-TILESET" directory webkitdirectory multiple>
+                        <p>
+                            Tileset should be a folder of pngs. Nested folders are allowed.
+                        </p>
+                        <div class="horz-flex">
+                            <button id="NEWMAP-SUBMIT">Make</button>
+                            <button id="NEWMAP-CANCEL">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="popup-window-frame" class="fill-screen hidden">
+            <div id="popup" class="center">
+            </div>
+        </div>
+    </main>
 
 </body>
 </html>

@@ -51,12 +51,12 @@ export class GridRenderer {
     identifier: string
     styles = {
         grid: {
-            BGColor: 'palegoldenrod',
-            borderDefault: '1px dotted lightseagreen'
+            BGColor: 'black',
+            borderDefault: '1px dotted white'
         },
         selection: {
             BGColor: 'inherit',//'#a0dba3;'
-            borderEdge: '2px solid lightseagreen'
+            borderEdge: '2px solid white'
         }
     }
     constructor(target: HTMLElement = document.body, tileset?: object) {
@@ -256,7 +256,7 @@ class GridController {
         this.setupButtonListeners()
     }
     setupButtonListeners() {
-        
+
     }
     setupKeyboardListeners() {
 
