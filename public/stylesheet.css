@@ -142,6 +142,12 @@ legend {
     border: 2px solid black;
 }
 
+input[type="text"], input[type="number"], input[type="text"]  {
+    color: black;
+    font-size: 2vh;
+    font-family: Tahoma, Verdana, Geneva, sans-serif;
+}
+
 #application {
     padding: 50px;
 }
