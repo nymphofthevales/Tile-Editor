@@ -4,6 +4,7 @@
     padding: 0 0 0 0;
     margin: 0 0 0 0;
     color: white;
+    cursor: cell;
     font-family: Tahoma, Verdana, Geneva, sans-serif;
 }
 
@@ -108,6 +109,37 @@ button:focus, button:hover {
 }
 button:active {
     background-color: rgba(255,255,255,0.5)
+}
+
+*::-webkit-scrollbar-track {
+    border-radius: 0px;
+    background-color: transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    background-color: black;
+    pointer-events: none;
+    cursor: cell;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 0px;
+    background-color: white;
+}
+
+*::-webkit-scrollbar-corner {
+    background: rgba(0,0,0,0);
+}
+
+fieldset {
+    border: 1px solid white;
+}
+
+legend {
+    margin: 0 auto;
+    border: 2px solid black;
 }
 
 #application {
