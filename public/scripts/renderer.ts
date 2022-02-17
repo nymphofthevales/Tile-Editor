@@ -46,7 +46,7 @@ export class Tileset {
  * capable of creating or modifying html elements on the fly to reflect changes in the data.
  */
 export class GridRenderer {
-    tileset: object
+    tileset: Tileset
     frame: HTMLElement
     identifier: string
     styles = {
@@ -59,7 +59,7 @@ export class GridRenderer {
             borderEdge: '2px solid white'
         }
     }
-    constructor(target: HTMLElement = document.body, tileset?: object) {
+    constructor(target: HTMLElement = document.body, tileset?: Tileset) {
         this.identifier = getUniqueIdentifier().toString()
         this.tileset = tileset? tileset : undefined
         this.createFrame(target)
@@ -273,7 +273,7 @@ class GridController {
 function getRowReference(y: number, identifier: string) {
     return document.getElementById(`row ${y}` + ' ' + identifier)
 }
-function getCellReference([x,y]:Coordinate, identifier: string) {
+export function getCellReference([x,y]:Coordinate, identifier: string) {
     return document.getElementById(`cell ${x} ${y}` + ' ' + identifier)
 }
 function documentHasCell([x,y]: Coordinate, identifier: string): boolean {

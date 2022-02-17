@@ -8,7 +8,7 @@
 </head>
 <body>
     <main class="fill-screen">
-        <div id="application-frame" class="opaque fill-screen">
+        <div id="application-frame" class="opaque fill-screen hidden">
             <div id="application" class="fill-parent horz-flex">
                 <div id="controller-menu" class="opaque outlined">
                     <nav id="controller-nav">
@@ -76,7 +76,7 @@
                 <button id="CTRL-MENU-TOGGLE">toggle menu</button>
             </div>
         </div>
-        <div id="main-menu" class="opaque fill-screen hidden">
+        <div id="main-menu" class="opaque fill-screen">
             <div id="main-menu-content" class="center">
                 <h1>TILED MAP EDITOR V2</h1>
                 <button id="MENU-NEW" class="MENU-BUTTON outlined">
@@ -106,7 +106,7 @@
                         </p>
                         <div class="horz-flex">
                             <button id="NEWMAP-SUBMIT">Make</button>
-                            <button id="NEWMAP-CANCEL">Cancel</button>
+                            <button id="NEWMAP-CLOSE">Cancel</button>
                         </div>
                     </form>
                 </div>

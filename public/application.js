@@ -1,46 +1,140 @@
 import { Grid } from "./scripts/grid.js";
 import { GridSelector } from "./scripts/selector.js";
-import { GridRenderer } from "./scripts/renderer.js";
-let g = new Grid(20, 20);
-let s = new GridSelector(g);
+import { GridRenderer, getCellReference } from "./scripts/renderer.js";
+let actionModes = {
+    select_deselect: function ([x, y]) {
+        if (workingSelector.selection.hasCell([x, y])) {
+            workingSelector.deselect([x, y]);
+        }
+        else {
+            workingSelector.select([x, y]);
+        }
+    },
+    place_tile: function ([x, y]) {
+    }
+};
+let workingGrid;
+let workingSelector;
 let target = document.getElementById('grid-mount');
-let r = new GridRenderer(target);
-s.batchSelect([
-    [0, 0],
-    [0, 1],
-    [1, 1],
-    [2, 2],
-    [1, 2],
-    [3, 2],
-    [-1, 2],
-    [-2, -1],
-    [4, 4],
-    [4, 3],
-    [4, 2]
-]);
-r.dynamicRender(g, s);
-let cells = [];
-cells = g.forEachCell((cell, grid, cells) => {
-    cells.push(cell.XYCoordinate);
-    return cells;
-}, cells);
-console.log(cells);
-document.getElementById("CTRL-BASIC-MOVE");
-document.getElementById("CTRL-BASIC-FILL");
-document.getElementById("CTRL-BASIC-COPY");
-document.getElementById("CTRL-BASIC-PASTE");
-document.getElementById("CTRL-BASIC-DELETE");
-document.getElementById("CTRL-SELECTIONMODE-CELL");
-document.getElementById("CTRL-SELECTIONMODE-ROW");
-document.getElementById("CTRL-SELECTIONMODE-COLUMN");
-document.getElementById("CTRL-SELECTIONMODE-AREA");
-document.getElementById("CTRL-SELECTION-ADD");
-document.getElementById("CTRL-SELECTION-REMOVE");
-document.getElementById("CTRL-SELECTION-ADJUST");
-document.getElementById("CTRL-SELECTION-ALL");
-document.getElementById("CTRL-SELECTION-CLEAR");
-document.getElementById("CTRL-GENERAL-UNDO");
-document.getElementById("CTRL-GENERAL-REDO");
-document.getElementById("CTRL-GENERAL-EXPAND");
-document.getElementById("CTRL-GENERAL-SHRINK");
-document.getElementById("CTRL-GENERAL-CROP");
+let workingRenderer = new GridRenderer(target);
+let currentActionMode = actionModes.select_deselect;
+class Form {
+    constructor(id) {
+        this.inputs = {};
+        this.values = {};
+        this._housing = document.getElementById(id);
+    }
+    addInput(name, id) {
+        this.inputs[name] = document.getElementById(id);
+    }
+    read() {
+        for (let key in this.inputs) {
+            let element = this.inputs[key];
+            this.values[key] = element.value;
+        }
+        return this.values;
+    }
+    clearInputs() {
+        for (let element in this.inputs) {
+            this.inputs[element].value = "";
+        }
+    }
+    set submit(id) {
+        this._submit = document.getElementById(id);
+    }
+    set submitAction(callback) {
+        this._submit.addEventListener("mouseup", callback);
+    }
+    set close(id) {
+        this._close = document.getElementById(id);
+    }
+    set closeAction(callback) {
+        this._close.addEventListener("mouseup", callback);
+    }
+}
+let setupForm = new Form("map-setup-frame");
+setupForm.addInput("width", "NEWMAP-WIDTH");
+setupForm.addInput("height", "NEWMAP-HEIGHT");
+setupForm.addInput("tileset", "NEWMAP-TILESET");
+setupForm.submit = "NEWMAP-SUBMIT";
+setupForm.submitAction = () => {
+    let parameters = setupForm.read();
+    let w = parseInt(parameters.width);
+    let h = parseInt(parameters.height);
+    let set = parameters.tileset;
+    workingGrid = new Grid(w, h);
+    workingSelector = new GridSelector(workingGrid);
+    startEditor();
+    setupForm.clearInputs();
+    setupForm._housing.classList.add("hidden");
+};
+setupForm.close = "NEWMAP-CLOSE";
+setupForm.closeAction = () => {
+    setupForm._housing.classList.add("hidden");
+    setupForm.clearInputs();
+};
+function startEditor() {
+    workingRenderer.dynamicRender(workingGrid, workingSelector);
+    setupCellListeners();
+    document.getElementById("main-menu").classList.add("hidden");
+    document.getElementById("application-frame").classList.remove("hidden");
+}
+function setupCellListeners() {
+    workingGrid.forEachCell((cell, grid, returnVariable) => {
+        let [x, y] = cell.XYCoordinate;
+        let identifier = workingRenderer.identifier;
+        let reference = getCellReference([x, y], identifier);
+        reference.addEventListener("mouseup", () => {
+            clickCell([x, y]);
+        });
+        reference.addEventListener("hover", () => {
+            //hoverCell([x,y])
+        });
+    });
+}
+function clickCell([x, y]) {
+    currentActionMode([x, y]);
+    workingRenderer.renderSelection(workingSelector);
+}
+document.getElementById("MENU-NEW").addEventListener('mouseup', () => {
+    setupForm.clearInputs();
+    setupForm._housing.classList.remove("hidden");
+});
+document.getElementById("CTRL-BASIC-MOVE").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-BASIC-FILL").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-BASIC-COPY").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-BASIC-PASTE").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-BASIC-DELETE").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTIONMODE-CELL").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTIONMODE-ROW").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTIONMODE-COLUMN").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTIONMODE-AREA").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTION-ADD").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTION-REMOVE").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTION-ADJUST").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTION-ALL").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-SELECTION-CLEAR").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-GENERAL-UNDO").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-GENERAL-REDO").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-GENERAL-EXPAND").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-GENERAL-SHRINK").addEventListener('mouseup', () => {
+});
+document.getElementById("CTRL-GENERAL-CROP").addEventListener('mouseup', () => {
+});

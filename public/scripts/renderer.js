@@ -255,7 +255,7 @@ class GridController {
 function getRowReference(y, identifier) {
     return document.getElementById(`row ${y}` + ' ' + identifier);
 }
-function getCellReference([x, y], identifier) {
+export function getCellReference([x, y], identifier) {
     return document.getElementById(`cell ${x} ${y}` + ' ' + identifier);
 }
 function documentHasCell([x, y], identifier) {
