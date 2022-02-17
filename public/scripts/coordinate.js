@@ -13,16 +13,21 @@ import { isEven, absNegative } from './numerical_helpers.js';
  * @example
  * generateCoordinateAxis(1)
  * // Returns [0]
+ * @example
+ * generateCoordinateAxis(0)
+ * // Returns []
  */
 export function generateCoordinateAxis(size) {
     let distanceFromOrigin;
     let axis = [];
-    if (isEven(size)) {
-        size += 1;
-    }
-    distanceFromOrigin = Math.floor(size / 2);
-    for (let i = 0; i < size; i++) {
-        axis.push(absNegative(distanceFromOrigin) + i);
+    if (size != 0) {
+        if (isEven(size)) {
+            size += 1;
+        }
+        distanceFromOrigin = Math.floor(size / 2);
+        for (let i = 0; i < size; i++) {
+            axis.push(absNegative(distanceFromOrigin) + i);
+        }
     }
     return axis;
 }

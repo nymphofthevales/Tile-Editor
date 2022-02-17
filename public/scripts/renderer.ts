@@ -8,7 +8,7 @@ import { GridSelector } from "./selector.js"
 export class Tileset {
     _title: string
     images: { key: {url: string} }
-    constructor() {
+    constructor(path: string) {
 
     }
     set title(title) {
@@ -83,9 +83,22 @@ export class GridRenderer {
         this.resolveData_DocumentDeltas(grid)
         this.renderSelection(gridSelector)
     }
-    
+    resolveSelection_DocumentDeltas(selector: GridSelector): void {
+        let selectedCells = document.getElementsByClassName("selected")
+        let toRemove = []
+        for (let i=0; i < selectedCells.length; i++) {
+            let [x,y] = getCoordsFromCellReference(selectedCells[i].id)
+            if (!selector.selection.hasCell([x,y])) {
+                toRemove.push(selectedCells[i])
+            }
+        }
+        for (let i = 0; i< toRemove.length; i++) {
+            toRemove[i].classList.remove("selected")
+        }
+    }
     renderSelection(selector: GridSelector): void {
-       let grid = selector.childGrid
+        let grid = selector.childGrid
+        this.resolveSelection_DocumentDeltas(selector)
         selector._iterateOverSelection((opts) => {
             this.renderCellSelection(grid, selector, opts.initialPosition)
         })
@@ -94,7 +107,7 @@ export class GridRenderer {
         let currentCell = grid.cell([cellX, cellY])
         let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
         HTMLCellReference.classList.add('selected')
-        this.renderAdjacentCellBorders(grid, selector, currentCell, HTMLCellReference)
+        //this.renderAdjacentCellBorders(grid, selector, currentCell, HTMLCellReference)
     }
     renderAdjacentCellBorders(grid: Grid, selector: GridSelector, currentCell: Cell, HTMLCellReference: HTMLElement): void {
         let adjacencies = currentCell.adjacentCells
@@ -148,7 +161,7 @@ export class GridRenderer {
     deselectCell([cellX, cellY]: Coordinate): void {
         let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
         HTMLCellReference.classList.remove('selected')
-        this.removeCellBorders([cellX, cellY], HTMLCellReference)
+        //this.removeCellBorders([cellX, cellY], HTMLCellReference)
     }
     removeCellBorders([cellX, cellY]: Coordinate, HTMLCellReference: HTMLElement): void {
         for (let i = 0; i < PerpendicularDirections.length; i++) {
@@ -281,6 +294,12 @@ function documentHasCell([x,y]: Coordinate, identifier: string): boolean {
 }
 function documentHasRow(y: number, identifier: string): boolean {
     return getRowReference(y, identifier)!= null
+}
+function getCoordsFromCellReference(id: string): Array<number> {
+    let [cell, xCoord, yCoord, identifier] = id.split(" ")
+    let x = parseInt(xCoord)
+    let y = parseInt(yCoord)
+    return [x,y]
 }
 
 function testShiftSelection([deltaX, deltaY], testGrid) {

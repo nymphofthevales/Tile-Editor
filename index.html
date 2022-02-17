@@ -72,7 +72,9 @@
                         </div>
                     </div>
                 </div>
-                <div id="grid-mount" class="opaque outlined fill-parent"></div>
+                <div id="grid-frame" class="opaque outlined fill-parent">
+                    <div id="grid-mount" class="opaque"></div>
+                </div>
                 <button id="CTRL-MENU-TOGGLE">toggle menu</button>
             </div>
         </div>
@@ -100,7 +102,9 @@
                         <label for="NEWMAP-HEIGHT" class="setup-form-label">Height</label>
                         <input type="number" value="10" name="NEWMAP-HEIGHT" id="NEWMAP-HEIGHT">
                         <label for="NEWMAP-TILESET" class="setup-form-label">Tileset:</label>
-                        <input type="file" name="NEWMAP-TILESET" id="NEWMAP-TILESET" directory webkitdirectory multiple>
+                        <select name="NEWMAP-TILESET" id="NEWMAP-TILESET">
+                            <option value="default">Labyrinth Default Tileset</option>
+                        </select>
                         <p>
                             Tileset should be a folder of pngs. Nested folders are allowed.
                         </p>

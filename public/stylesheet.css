@@ -12,6 +12,14 @@ body {
     overflow: hidden;
 }
 
+#grid-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: scroll;
+}
+
+
 .grid-renderer-frame {
     display: flex;
     flex-direction: column-reverse;
@@ -40,7 +48,7 @@ body {
 }
 
 .selected {
-    background-color: none;
+    background: #222222;
 }
 
 /******************************/
