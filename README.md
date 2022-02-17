@@ -1,6 +1,6 @@
 # Tile-Editor
 <p align="center">
-  <img src="./assets/header.png" width="60%">
+  <img src="./assets/header.png" width="80%">
 </p>
 <p>A dev tool for laying out tile-based patterns, maps, etc.</p>
 
