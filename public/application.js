@@ -10,14 +10,43 @@ let actionModes = {
             workingSelector.select([x, y]);
         }
     },
-    place_tile: function ([x, y]) {
+    draw_tiles: function ([x, y]) {
+    },
+    drag_select: function ([x1, y1], [x2, y2]) {
     }
 };
 let workingGrid;
 let workingSelector;
 let target = document.getElementById('grid-mount');
 let workingRenderer = new GridRenderer(target);
+let ident = workingRenderer.identifier;
 let currentActionMode = actionModes.select_deselect;
+class Stack {
+    constructor() {
+        this._stack = [];
+    }
+    constuctor() {
+    }
+    pop() {
+        this._stack.pop();
+    }
+    push(element) {
+        this._stack.push(element);
+    }
+    clear() {
+        this._stack = [];
+    }
+    get length() {
+        return;
+    }
+    get latest() {
+        let index = this._stack.length - 1;
+        return this._stack[index];
+    }
+    get oldest() {
+        return this._stack[0];
+    }
+}
 class Form {
     constructor(id) {
         this.inputs = {};
@@ -84,18 +113,57 @@ function setupCellListeners() {
         let [x, y] = cell.XYCoordinate;
         let identifier = workingRenderer.identifier;
         let reference = getCellReference([x, y], identifier);
-        reference.addEventListener("mouseup", () => {
-            clickCell([x, y]);
+        reference.addEventListener("pointerenter", () => {
+            if (!mousepos['listening']) {
+                mousepos.clear();
+                mousepos.push([x, y]);
+                cellInteractions.hover();
+            }
         });
-        reference.addEventListener("hover", () => {
-            //hoverCell([x,y])
+        reference.addEventListener("pointerleave", () => {
+            if (!mousepos['listening']) {
+                cellInteractions.clearHover();
+                mousepos.clear();
+            }
+        });
+        reference.addEventListener("mousedown", () => {
+            cellInteractions.click();
+            mousepos['listening'] = true;
+        });
+        reference.addEventListener("mouseup", () => {
+            mousepos.push([x, y]);
+            cellInteractions.release();
+            mousepos['listening'] = false;
+            cellInteractions.clearHover();
+            mousepos.clear();
+            mousepos.push([x, y]);
+            cellInteractions.hover();
         });
     });
 }
-function clickCell([x, y]) {
-    currentActionMode([x, y]);
-    workingRenderer.renderSelection(workingSelector);
-}
+let mousepos = new Stack();
+mousepos['listening'] = false;
+let cellInteractions = {
+    click: () => {
+        console.log(mousepos._stack);
+        let [x, y] = mousepos.latest;
+        currentActionMode([x, y]);
+        workingRenderer.renderSelection(workingSelector);
+    },
+    release: () => {
+        console.log('release', mousepos.latest, mousepos.oldest);
+    },
+    hover: () => {
+        let [x, y] = mousepos.latest;
+        console.log('hover', mousepos.latest);
+        getCellReference([x, y], ident).classList.add('hovered');
+    },
+    clearHover: () => {
+        let [x, y] = mousepos.oldest;
+        console.log('clearhover', mousepos.oldest);
+        getCellReference([x, y], ident).classList.remove('hovered');
+    },
+};
 document.getElementById("MENU-NEW").addEventListener('mouseup', () => {
     setupForm.clearInputs();
     setupForm._housing.classList.remove("hidden");

@@ -227,9 +227,7 @@ export class Grid {
      * @returns Returns the Cell at the specified Coordinates in the Grid.
      */
      cell([x,y]: Coordinate): Cell {
-        let cell
-        cell = this.hasRow(y) ? this.row(y).column(x) : undefined
-        return cell
+        return this.row(y)?.column(x) 
     }
     /**
      * Allows iteration over all the cells in a grid. 

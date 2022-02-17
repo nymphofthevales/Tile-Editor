@@ -6,6 +6,7 @@
     color: white;
     cursor: cell;
     font-family: Tahoma, Verdana, Geneva, sans-serif;
+    -webkit-user-drag: false;
 }
 
 body {
@@ -18,7 +19,6 @@ body {
     align-items: center;
     overflow: scroll;
 }
-
 
 .grid-renderer-frame {
     display: flex;
@@ -48,7 +48,11 @@ body {
 }
 
 .selected {
-    background: #222222;
+    border: 2px solid #bb88bb;
+}
+
+.hovered {
+    background: #663366;
 }
 
 /******************************/
