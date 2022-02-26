@@ -2,37 +2,6 @@ import { PerpendicularDirections } from "./direction.js";
 import { getUniqueIdentifier } from "./numerical_helpers.js";
 import { generateGridFromPreset } from "./grid.js";
 import { GridSelector } from "./selector.js";
-export class Tileset {
-    constructor(path) {
-    }
-    set title(title) {
-        this._title = title;
-    }
-    get(tileString) {
-        var _a;
-        return (_a = this.images["tilestring"]) === null || _a === void 0 ? void 0 : _a.url;
-    }
-    /**
-     *
-     * @param path a relative file path to a folder of images to be designated as a tileset.
-     */
-    createTileset(path) {
-    }
-    /**
-     * @param path a relative file path to a JSON tileset file.
-     */
-    read(path) {
-    }
-    /**
-     * Writes the tileset to a json file.
-     */
-    write() {
-        let tileset = {};
-        tileset["title"] = this._title;
-        tileset["images"] = this.images;
-        JSON.stringify(tileset);
-    }
-}
 /**
  * Sets up a renderer for a grid,
  * capable of creating or modifying html elements on the fly to reflect changes in the data.
@@ -248,22 +217,6 @@ export class GridRenderer {
     removeCellFromDocument(cell, YPosition) {
         let row = getRowReference(YPosition, this.identifier);
         row.removeChild(cell);
-    }
-}
-class GridController {
-    constructor(boundRenderer) {
-        this.boundRenderer = boundRenderer;
-    }
-    setupListeners() {
-        this.setupButtonListeners();
-    }
-    setupButtonListeners() {
-    }
-    setupKeyboardListeners() {
-    }
-    setupMouseListeners() {
-    }
-    appendCustomCursors() {
     }
 }
 function getRowReference(y, identifier) {

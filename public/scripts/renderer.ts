@@ -4,42 +4,7 @@ import { Coordinate, CoordinateAxis } from "./coordinate.js"
 import { getUniqueIdentifier } from "./numerical_helpers.js"
 import { Grid, Row, Cell, generateGridFromPreset, GridPreset } from "./grid.js"
 import { GridSelector } from "./selector.js"
-
-export class Tileset {
-    _title: string
-    images: { key: {url: string} }
-    constructor(path: string) {
-
-    }
-    set title(title) {
-        this._title = title
-    }
-    get(tileString) {
-        return this.images["tilestring"]?.url
-    }
-    /**
-     * 
-     * @param path a relative file path to a folder of images to be designated as a tileset.
-     */
-    createTileset(path: string) {
-        
-    }
-    /**
-     * @param path a relative file path to a JSON tileset file.
-     */
-    read(path: string) {
-
-    }
-    /**
-     * Writes the tileset to a json file.
-     */
-    write() {
-        let tileset = {}
-        tileset["title"] = this._title
-        tileset["images"] = this.images
-        JSON.stringify(tileset)
-    }
-}
+import { Tileset } from "./tileset.js"
 
 /**
  * Sets up a renderer for a grid, 
@@ -259,28 +224,6 @@ export class GridRenderer {
         let row = getRowReference(YPosition, this.identifier)
         row.removeChild(cell)
     }
-}
-class GridController {
-    boundRenderer: GridRenderer
-    constructor(boundRenderer: GridRenderer) {
-        this.boundRenderer = boundRenderer
-    }
-    setupListeners() {
-        this.setupButtonListeners()
-    }
-    setupButtonListeners() {
-
-    }
-    setupKeyboardListeners() {
-
-    }
-    setupMouseListeners() {
-
-    }
-    appendCustomCursors() {
-
-    }
-
 }
 
 function getRowReference(y: number, identifier: string) {
