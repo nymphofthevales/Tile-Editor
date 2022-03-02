@@ -108,8 +108,8 @@ export class GridRenderer {
             let tile: string = parser(data)
             if (tile != undefined) {
                 let HTMLCellReference = getCellReference(cell.XYCoordinate, grid.identifier)
-               let img //= this.tileset.get(tile)
-                HTMLCellReference.style.backgroundImage = img
+                let imgPath = this.tileset.get(tile)
+                HTMLCellReference.style.backgroundImage = imgPath
             }
         })
     }

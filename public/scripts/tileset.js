@@ -1,31 +1,67 @@
+const path = require('path');
+const dir = require('node-dir');
 export class Tileset {
     constructor(path) {
+        this.path = path;
+        this.tiles = {};
+        this.construct();
     }
-    set title(title) {
-        this._title = title;
+    get(tileName) {
+        return this.tiles[tileName];
     }
-    get(tileString) {
-        var _a;
-        return (_a = this.images["tilestring"]) === null || _a === void 0 ? void 0 : _a.url;
+    forEach(callback) {
+        for (let tile in this.tiles) {
+            callback(tile, this.tiles[tile]);
+        }
     }
-    /**
-     *
-     * @param path a relative file path to a folder of images to be designated as a tileset.
-     */
-    createTileset(path) {
+    construct() {
+        let parent = this;
+        dir.readFiles(this.path, {
+            match: /.png$/,
+            exclude: /^\./
+        }, function (err, content, filename, next) {
+            if (err)
+                throw err;
+            next();
+        }, function (err, files) {
+            if (err)
+                throw err;
+            for (let i = 0; i < files.length; i++) {
+                let filePath = files[i];
+                parent.addTile(filePath);
+            }
+        });
     }
-    /**
-     * @param path a relative file path to a JSON tileset file.
-     */
-    read(path) {
-    }
-    /**
-     * Writes the tileset to a json file.
-     */
-    write() {
-        let tileset = {};
-        tileset["title"] = this._title;
-        tileset["images"] = this.images;
-        JSON.stringify(tileset);
+    addTile(filePath) {
+        let filename = extractFilename(filePath);
+        this.tiles[filename] = new Tile(filePath);
+        console.log(this.tiles);
     }
 }
+function extractFilename(filePath) {
+    let x = filePath.split('/');
+    let filename = x[x.length - 1];
+    filename = filename.split('.')[0];
+    return filename;
+}
+export class Tile {
+    /*rotationof: Array<{
+        tile: Tile,
+        clockwise: boolean
+    }>*/
+    constructor(filePath) {
+        this.path = filePath;
+    }
+}
+let labyrinth = new Tileset(path.join(__dirname, "..", "tilesets/labyrinth/passageway"));
+/*dir.readFiles(path.join(__dirname, "..", "tilesets/labyrinth/passageway"), {
+   match: /.png$/,
+    exclude: /^\./
+}, function(err, content, next) {
+    if (err) throw err
+    next()
+}, function(err, files) {
+    if (err) throw err
+    console.log('finished')
+    console.log(files)
+})*/

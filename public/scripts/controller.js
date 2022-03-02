@@ -2,10 +2,12 @@ import { GridRenderer, getCellReference } from "./renderer.js";
 import { Grid } from "./grid.js";
 import { GridSelector } from "./selector.js";
 import { Stack } from "./stack.js";
+import { Tileset } from "./tileset.js";
 export class GridController {
-    constructor(w, h, target = document.body, tileset) {
+    constructor(w, h, target = document.body, set) {
         this.workingGrid = new Grid(w, h);
         this.workingSelector = new GridSelector(this.workingGrid);
+        let tileset = new Tileset(`./tilesets/${set}`);
         this.workingRenderer = new GridRenderer(target, tileset);
         this.ident = this.workingRenderer.identifier;
         this.actionManager = new ActionManager(this.workingGrid, this.workingSelector, this.workingRenderer, this.ident);

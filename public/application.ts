@@ -1,7 +1,7 @@
 import { Form } from "./scripts/form.js"
 import { GridController } from "./scripts/controller.js"
 import { DynamicElement } from "./scripts/dynamicElement.js"
-
+const t = require( 'tileset' )
 
 let controller: GridController
 let main_menu = new DynamicElement(document.getElementById("main-menu"))
@@ -17,7 +17,7 @@ setupForm.submitAction = () => {
     let h = parseInt(parameters.height)
     let set = parameters.tileset
     let target = document.getElementById('grid-mount')
-    console.log(set)
+    console.log(`tileset: ${set}`)
     controller = new GridController(w, h, target, set)
     startEditor()
     setupForm.clearInputs()
