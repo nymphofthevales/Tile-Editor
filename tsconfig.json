@@ -6,12 +6,12 @@
         "moduleResolution": "node"
     },
     "files": [
-        "./public/scripts/direction.ts",
-        "./public/scripts/coordinate.ts",
-        "./public/scripts/grid.ts",
-        "./public/scripts/map_helpers.ts",
-        "./public/scripts/numerical_helpers.ts",
-        "./public/scripts/renderer.ts",
-        "./public/application.ts"
+        "./scripts/direction.ts",
+        "./scripts/coordinate.ts",
+        "./scripts/grid.ts",
+        "./scripts/map_helpers.ts",
+        "./scripts/numerical_helpers.ts",
+        "./scripts/renderer.ts",
+        "./application.ts"
       ]
 }

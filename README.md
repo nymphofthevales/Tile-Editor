@@ -1,5 +1,11 @@
 # Tile-Editor
 <p align="center">
+  <img src="./assets/shot2.png" width="80%">
+</p>
+<p align="center">
+  <img src="./assets/shot1.png" width="80%">
+</p>
+<p align="center">
   <img src="./assets/header.png" width="80%">
 </p>
 <p>A dev tool for laying out tile-based patterns, maps, etc.</p>
