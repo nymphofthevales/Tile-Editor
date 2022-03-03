@@ -159,6 +159,8 @@ body {
 .grid-cell {
     background-color: black;
     border: 1px dotted #555555;
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .selected_bg_color {

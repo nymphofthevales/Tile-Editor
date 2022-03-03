@@ -1,7 +1,6 @@
 import { Form } from "./scripts/form.js";
 import { GridController } from "./scripts/controller.js";
 import { DynamicElement } from "./scripts/dynamicElement.js";
-const t = require('tileset');
 let controller;
 let main_menu = new DynamicElement(document.getElementById("main-menu"));
 let application = new DynamicElement(document.getElementById("application-frame"));
@@ -9,21 +8,17 @@ let setupForm = new Form("map-setup-frame");
 setupForm.addInput("width", "NEWMAP-WIDTH");
 setupForm.addInput("height", "NEWMAP-HEIGHT");
 setupForm.addInput("tileset", "NEWMAP-TILESET");
-setupForm.submit = "NEWMAP-SUBMIT";
-setupForm.submitAction = () => {
-    let parameters = setupForm.read();
-    let w = parseInt(parameters.width);
-    let h = parseInt(parameters.height);
-    let set = parameters.tileset;
+setupForm.submitInput = "NEWMAP-SUBMIT";
+setupForm.onSubmit = () => {
     let target = document.getElementById('grid-mount');
-    console.log(`tileset: ${set}`);
-    controller = new GridController(w, h, target, set);
+    let { width, height, tileset } = setupForm.read();
+    controller = new GridController(width, height, target, tileset);
     startEditor();
     setupForm.clearInputs();
     setupForm.hide();
 };
-setupForm.close = "NEWMAP-CLOSE";
-setupForm.closeAction = () => {
+setupForm.closeInput = "NEWMAP-CLOSE";
+setupForm.onClose = () => {
     setupForm.hide();
     setupForm.clearInputs();
 };

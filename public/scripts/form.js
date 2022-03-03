@@ -21,16 +21,16 @@ export class Form extends DynamicElement {
             this.inputs[element].value = "";
         }
     }
-    set submit(id) {
+    set submitInput(id) {
         this._submit = document.getElementById(id);
     }
-    set submitAction(callback) {
+    set onSubmit(callback) {
         this._submit.addEventListener("mouseup", callback);
     }
-    set close(id) {
+    set closeInput(id) {
         this._close = document.getElementById(id);
     }
-    set closeAction(callback) {
+    set onClose(callback) {
         this._close.addEventListener("mouseup", callback);
     }
 }
