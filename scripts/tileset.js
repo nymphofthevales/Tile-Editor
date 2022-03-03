@@ -53,7 +53,7 @@ export class Tile {
         this.path = filePath;
     }
 }
-let labyrinth = new Tileset(path.join(__dirname, "..", "tilesets/labyrinth/passageway"));
+let labyrinth = new Tileset(path.join(__dirname, "tilesets/labyrinth/passageway"));
 /*dir.readFiles(path.join(__dirname, "..", "tilesets/labyrinth/passageway"), {
    match: /.png$/,
     exclude: /^\./

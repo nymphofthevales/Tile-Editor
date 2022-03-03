@@ -103,6 +103,7 @@ class MouseManager {
         this.actionManager.grid.forEachCell((cell, grid, returnVariable) => {
             let [x, y] = cell.XYCoordinate;
             let reference = getCellReference([x, y], this.ident);
+            reference.draggable = false;
             reference.addEventListener("pointerenter", () => {
                 if (!this.mousePosition['listening']) {
                     this.mousePosition.clear();
@@ -116,7 +117,8 @@ class MouseManager {
                     this.mousePosition.clear();
                 }
             });
-            reference.addEventListener("mousedown", () => {
+            reference.addEventListener("mousedown", (event) => {
+                event.preventDefault();
                 this.click();
                 this.mousePosition['listening'] = true;
             });
