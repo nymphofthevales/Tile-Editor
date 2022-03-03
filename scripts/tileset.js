@@ -9,9 +9,19 @@ export class Tileset {
     get(tileName) {
         return this.tiles[tileName];
     }
-    forEach(callback) {
-        for (let tile in this.tiles) {
-            callback(tile, this.tiles[tile]);
+    /**
+     * Runs a callback function over every tile in the set.
+     * callback gains access to each tile's name, and it's Tile instance.
+     * @example callback(tilename: string, this.tiles[tilename]: Tile)
+    * @param callback
+    */
+    forEachTile(callback) {
+        let tiles = Object.keys(this.tiles);
+        console.log('ran');
+        for (let i = 0; i < tiles.length; i++) {
+            let tilename = tiles[i];
+            callback(tilename, this.tiles[tilename]);
+            console.log(`running on ${tilename}`);
         }
     }
     construct() {
@@ -35,7 +45,6 @@ export class Tileset {
     addTile(filePath) {
         let filename = extractFilename(filePath);
         this.tiles[filename] = new Tile(filePath);
-        console.log(this.tiles);
     }
 }
 function extractFilename(filePath) {
@@ -50,10 +59,9 @@ export class Tile {
         clockwise: boolean
     }>*/
     constructor(filePath) {
-        this.path = filePath;
+        this.path = "./" + filePath;
     }
 }
-let labyrinth = new Tileset(path.join(__dirname, "tilesets/labyrinth/passageway"));
 /*dir.readFiles(path.join(__dirname, "..", "tilesets/labyrinth/passageway"), {
    match: /.png$/,
     exclude: /^\./

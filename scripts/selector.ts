@@ -10,11 +10,9 @@ import { insertElementInMap } from "./map_helpers.js"
     selection: Grid
     clipboard: Grid
     childGrid: Grid
-    identifier: string
     positionDelta: Coordinate = [0,0]
     constructor(grid: Grid) {
         this.childGrid = grid
-        this.identifier = grid.identifier
         let emptyGridParams = {
             fillCells: false,
             fillRows: false

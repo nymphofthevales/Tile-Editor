@@ -36,6 +36,10 @@ export class GridController {
     }
     render() {
         this.workingRenderer.dynamicRender(this.workingGrid, this.workingSelector)
+        setTimeout(() => {
+            fillTileMenu(this.workingRenderer.tileset,"tile-selector-frame")
+            this.workingRenderer.renderTileset(this.workingGrid)
+        }, 500)
     }
 }
 
@@ -45,12 +49,16 @@ export class ActionManager {
     renderer: GridRenderer
     ident: string
     currentActionMode: Function
+    selectedTile: string
     constructor(grid, selector, renderer, ident) {
         this.grid = grid
         this.selector = selector
         this.renderer = renderer
         this.ident = ident
-        this.currentActionMode = this.select_deselect
+        this.currentActionMode = this.draw_tiles
+        //TEMP
+        this.selectedTile = "lu"
+        //TEMP
     }
     select_deselect([x,y]): void {
         let selector = this.selector
@@ -61,7 +69,10 @@ export class ActionManager {
         }
     }
     draw_tiles([x,y]): void {
-
+        let cell = this.grid.cell([x,y])
+        cell.data.tile = this.selectedTile
+        console.log(cell)
+        this.renderer.renderTile(cell)
     }
     drag_select([x1,y1], [x2,y2]): void {
 
@@ -215,4 +226,39 @@ class ZoomManager {
         element.classList.remove(height)
         element.classList.remove(width)
     }
+}
+
+class ControllerMenu {
+
+    constructor(frame: HTMLElement) {
+
+    }
+
+}
+
+function fillTileMenu(tileset: Tileset, target: string) {
+    console.log(`attempting over ${tileset}`)
+    console.log(tileset.tiles)
+    tileset.forEachTile((tilename, tile) => {
+        let menu = document.getElementById(target)
+        let btn = document.createElement("button")
+        let p = document.createElement("p")
+        let img = document.createElement("img")
+        menu.appendChild(btn).id=`tile-selector-${tilename}`
+        let button = document.getElementById(`tile-selector-${tilename}`)
+        button.classList.add("controller-tile-selector-button")
+        button.appendChild(p).textContent = splitfilename(tilename)
+        button.appendChild(img).src = tile.path
+        console.log(button)
+    })
+}
+
+function splitfilename(filename) {
+    let x = ""
+    let a = filename.split('_')
+    for (let i=0; i < a.length; i++) {
+        x += a[i]
+        x+= " "
+    }
+    return x
 }

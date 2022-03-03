@@ -1,12 +1,11 @@
 import { generateCoordinateAxis } from "./coordinate.js";
 import { parseMapKeysToArray, concatenateMaps } from "./map_helpers.js";
-import { getUniqueIdentifier } from "./numerical_helpers.js";
 /**
  * Sets up a data structure for an individual Cell in a Grid.
  */
 export class Cell {
     constructor(column, row, parentGrid, parentRow) {
-        this.data = undefined;
+        this.data = { tile: undefined };
         this.XYCoordinate = [column, row];
         this.parentRow = parentRow;
         this.parentGrid = parentGrid;
@@ -171,7 +170,6 @@ export class Grid {
         this.rows = new Map();
         let fillRows = (opts === null || opts === void 0 ? void 0 : opts.fillRows) ? opts.fillRows : true;
         let fillCells = (opts === null || opts === void 0 ? void 0 : opts.fillCells) ? opts.fillCells : true;
-        this.identifier = getUniqueIdentifier().toString();
         let YAxis = generateCoordinateAxis(height);
         if (fillRows) {
             this.fillRows(width, YAxis, fillCells);

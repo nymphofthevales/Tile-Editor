@@ -10,7 +10,7 @@
     <main class="fill-screen">
         <div id="application-frame" class="opaque fill-screen hidden">
             <div id="application" class="fill-parent horz-flex">
-                <div id="controller-menu" class="opaque outlined hidden">
+                <div id="controller-menu" class="opaque outlined">
                     <nav id="controller-nav">
                         <button id="CTRL-NAV-TOOLS">Tools</button>
                         <button id="CTRL-NAV-TILES">Tiles</button>
@@ -18,57 +18,13 @@
                         <button id="CTRL-NAV-QUIT">Quit</button>
                     </nav>
                     <div id="controller-content">
-                        <div id="controller-tools">
-                            <fieldset id="controller-selection-modes-frame" class="controller-tools-fieldset">
-                                <legend>Selection Mode</legend>
-                                <div id="CTRL-SELECTION-MODES" class="controller-buttonset">
-                                    <button id="CTRL-SELECTIONMODE-CELL">Cell</button>
-                                    <button id="CTRL-SELECTIONMODE-ROW">Row</button>
-                                    <button id="CTRL-SELECTIONMODE-COLUMN">Column</button>
-                                    <button id="CTRL-SELECTIONMODE-AREA">Area</button>
-                                </div>
-                            </fieldset>
-                            <fieldset id="controller-basic-tools-frame" class="controller-tools-fieldset">
-                                <legend>Basic Tools</legend>
-                                <div id="CTRL-BASIC-TOOLS-BUTTONSET" class="controller-buttonset">
-                                    <button id="CTRL-BASIC-MOVE">Move</button>
-                                    <button id="CTRL-BASIC-FILL">Fill</button>
-                                    <button id="CTRL-BASIC-COPY">Copy</button>
-                                    <button id="CTRL-BASIC-PASTE">Paste</button>
-                                    <button id="CTRL-BASIC-DELETE">Delete</button>
-                                </div>
-                            </fieldset>
-                            <fieldset id="controller-selection-tools-frame" class="controller-tools-fieldset">
-                                <legend>Selection Tools</legend>
-                                <div id="CTRL-SELECTION-TOOLS-BUTTONSET" class="controller-buttonset">
-                                    <button id="CTRL-SELECTION-ADD">Add to Selection</button>
-                                    <button id="CTRL-SELECTION-REMOVE">Remove from Selection</button>
-                                    <button id="CTRL-SELECTION-ADJUST">Adjust Selection</button>
-                                    <button id="CTRL-SELECTION-ALL">Select All</button>
-                                    <button id="CTRL-SELECTION-CLEAR">Clear Selection</button>
-                                </div>
-                            </fieldset>
-                            <fieldset id="controller-general-tools-frame" class="controller-tools-fieldset">
-                                <legend>General Tools</legend>
-                                <div id="CTRL-BASIC-TOOLS-BUTTONSET" class="controller-buttonset">
-                                    <button id="CTRL-GENERAL-UNDO">Undo</button>
-                                    <button id="CTRL-GENERAL-REDO">Redo</button>
-                                    <button id="CTRL-GENERAL-EXPAND">Expand Workspace</button>
-                                    <button id="CTRL-GENERAL-SHRINK">Shrink Workspace</button>
-                                    <button id="CTRL-GENERAL-CROP">Crop To Selection</button>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div id="controller-tiles">
-                            <div class="tile-selector-frame">
-                                <button id="CTRL-TILE-SELECTOR-filename" class="controller-tile-selector-button">
-                                    <img src="filename.png" alt="filename">
-                                    <p>filename</p>
-                                </button>
-                            </div>
-                        </div>
                         <div id="controller-options">
 
+                        </div>
+                        <div id="controller-tiles">
+                            <div id="tile-selector-frame">
+                                
+                            </div>
                         </div>
                     </div>
                 </div>

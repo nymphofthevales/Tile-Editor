@@ -1,7 +1,6 @@
 import { Coordinate, CoordinateAxis, generateCoordinateAxis, readPositionDelta } from "./coordinate.js"
 import { parseMapKeysToArray, concatenateMaps, insertElementInMap } from "./map_helpers.js"
 import { Direction, AdjacentDirection, QuantizedAngle } from "./direction.js"
-import { getUniqueIdentifier } from "./numerical_helpers.js" 
 
 export interface GridPreset {
     width: number,
@@ -19,7 +18,7 @@ export class Cell {
     parentRow: Row
     parentGrid: Grid
     XYCoordinate: Coordinate
-    data: any = undefined
+    data: any = {tile: undefined}
     constructor(column: number, row: number, parentGrid: Grid, parentRow: Row) {
         this.XYCoordinate = [column,row]
         this.parentRow = parentRow
@@ -182,14 +181,12 @@ export class Row {
  */
 export class Grid {
     rows: Map<number,Row> = new Map();
-    identifier: string
     constructor(width: number = 1, height: number = 1,  opts?: {
         fillRows?: boolean, 
         fillCells?: boolean
     }) {
         let fillRows = opts?.fillRows? opts.fillRows : true
         let fillCells = opts?.fillCells? opts.fillCells : true
-        this.identifier = getUniqueIdentifier().toString()
         let YAxis = generateCoordinateAxis(height)
         if (fillRows) {
             this.fillRows(width, YAxis, fillCells)

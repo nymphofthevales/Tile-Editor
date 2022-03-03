@@ -8,7 +8,6 @@ export class GridSelector {
     constructor(grid) {
         this.positionDelta = [0, 0];
         this.childGrid = grid;
-        this.identifier = grid.identifier;
         let emptyGridParams = {
             fillCells: false,
             fillRows: false

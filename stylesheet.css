@@ -160,14 +160,12 @@ body {
 .grid-cell {
     background-color: black;
     border: 1px dotted #555555;
+}
+
+.grid-cell, .hovered, .selected, .grid-cell:active, .grid-cell:hover {
     background-size: contain;
     background-repeat: no-repeat;
-}
-.grid-cell:active {
-    background-color: none;
-}
-.grid-cell:hover {
-    background-color: none;
+    image-rendering: pixelated;
 }
 
 .selected_bg_color {
@@ -331,6 +329,7 @@ input[type="text"], input[type="number"], input[type="text"]  {
 .controller-tile-selector-button img{
     height: 100px;
     width: 100px;
+    image-rendering: pixelated;
 }
 
 .controller-tile-selector-button p {
@@ -382,4 +381,8 @@ input[type="text"], input[type="number"], input[type="text"]  {
 
 #NEWMAP-FORM > button {
     width: 40%
+}
+
+#NEWMAP-FORM select {
+    color: black;
 }

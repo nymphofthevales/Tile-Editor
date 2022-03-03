@@ -93,25 +93,19 @@ export class GridRenderer {
     }
     /**
      * Takes in a user-defined callback function for extracting tileset keys from cell data.
-     * @param parser a callback function which extracts and returns a tile string from the cell data.
-     * tile string should be a valid key for the tileset.json assigned to the renderer.
-     * If no parser is specified, tries to look at cellData['tile'] for a result.
     */
-    renderTileset(grid: Grid, parser?: Function) {
-        if (parser == undefined) {
-            parser = (cellData) => {
-                return cellData.tile
-            }
-        }
+    renderTileset(grid: Grid) {
         grid.forEachCell((cell, grid) => {
-            let data = cell.data 
-            let tile: string = parser(data)
-            if (tile != undefined) {
-                let HTMLCellReference = getCellReference(cell.XYCoordinate, grid.identifier)
-                let imgPath = this.tileset.get(tile)
-                HTMLCellReference.style.backgroundImage = imgPath
-            }
+            this.renderTile(cell)
         })
+    }
+    renderTile(cell: Cell) {
+        let tilename = cell.data.tile
+        if (tilename != undefined) {
+            let HTMLCellReference = getCellReference(cell.XYCoordinate, this.identifier)
+            let imgPath = this.tileset.get(tilename).path
+            HTMLCellReference.style.backgroundImage = `url(\"${imgPath}\")`
+        }
     }
     /**
      * Resets grid to be totally deselected. 
