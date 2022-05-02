@@ -1,16 +1,17 @@
 const path = require( 'path' )
-const dir = require('node-dir')
+const fs = require('fs')
+import { extractFilename, iterateOnImageFiles } from './file_helpers.js'
 
 export class Tileset {
-    path: string
-    tiles: object
+    _path: string
+    _tiles: object
     constructor(path: string) {
-        this.path = path
-        this.tiles = {}
+        this._path = path
+        this._tiles = {}
         this.construct()
     }
     get(tileName) {
-        return this.tiles[tileName]
+        return this._tiles[tileName]
     }
     /**
      * Runs a callback function over every tile in the set.
@@ -19,44 +20,29 @@ export class Tileset {
     * @param callback 
     */
     forEachTile(callback: Function): void {
-        let tiles = Object.keys(this.tiles)
+        let tiles = Object.keys(this._tiles)
         console.log('ran')
         for (let i=0; i < tiles.length; i++) {
             let tilename = tiles[i]
-            callback(tilename, this.tiles[tilename])
+            callback(tilename, this._tiles[tilename])
             console.log(`running on ${tilename}`)
         }
     }
     construct() {
         let parent = this
-        dir.readFiles(this.path, {
-            match: /.png$/,
-            exclude: /^\./
-        },
-        function(err,content,filename, next) {
-            if (err) throw err
-            next()
-        }, 
-        function(err,files) {
-            if (err) throw err
-            for (let i=0; i < files.length; i++) {
-                let filePath = files[i]
-                parent.addTile(filePath)
-            }
+        console.log(`tileset path: ${this._path}`)
+        iterateOnImageFiles(this._path, function(path, filename) {
+            let filePath = path + '/' + filename
+            parent.addTile(filePath)
         })
+        
     }
     addTile(filePath) {
         let filename = extractFilename(filePath)
-        this.tiles[filename] = new Tile(filePath)
+        this._tiles[filename] = new Tile(filePath)
+        console.log(`${filename}: ${this._tiles[filename].path}`)
     }
     
-}
-
-function extractFilename(filePath) {
-    let x = filePath.split('/')
-    let filename = x[x.length - 1]
-    filename = filename.split('.')[0]
-    return filename
 }
 
 export class Tile {
@@ -66,21 +52,6 @@ export class Tile {
         clockwise: boolean
     }>*/
     constructor(filePath) {
-        this.path = "./" + filePath
+        this.path = filePath
     }
 }
-
-
-
-
-/*dir.readFiles(path.join(__dirname, "..", "tilesets/labyrinth/passageway"), {
-   match: /.png$/,
-    exclude: /^\./
-}, function(err, content, next) {
-    if (err) throw err
-    next()
-}, function(err, files) {
-    if (err) throw err
-    console.log('finished')
-    console.log(files)
-})*/

@@ -37,7 +37,7 @@ export class GridController {
     render() {
         this.workingRenderer.dynamicRender(this.workingGrid, this.workingSelector)
         setTimeout(() => {
-            fillTileMenu(this.workingRenderer.tileset,"tile-selector-frame")
+            fillTileMenu(this, this.workingRenderer.tileset,"tile-selector-frame")
             this.workingRenderer.renderTileset(this.workingGrid)
         }, 500)
     }
@@ -56,9 +56,7 @@ export class ActionManager {
         this.renderer = renderer
         this.ident = ident
         this.currentActionMode = this.draw_tiles
-        //TEMP
-        this.selectedTile = "lu"
-        //TEMP
+        this.selectedTile = "none"
     }
     select_deselect([x,y]): void {
         let selector = this.selector
@@ -236,29 +234,38 @@ class ControllerMenu {
 
 }
 
-function fillTileMenu(tileset: Tileset, target: string) {
+function fillTileMenu(caller: GridController, tileset: Tileset, target: string) {
     console.log(`attempting over ${tileset}`)
-    console.log(tileset.tiles)
+    console.log(tileset._tiles)
     tileset.forEachTile((tilename, tile) => {
         let menu = document.getElementById(target)
         let btn = document.createElement("button")
-        let p = document.createElement("p")
+        let label = document.createElement("div")
         let img = document.createElement("img")
         menu.appendChild(btn).id=`tile-selector-${tilename}`
         let button = document.getElementById(`tile-selector-${tilename}`)
         button.classList.add("controller-tile-selector-button")
-        button.appendChild(p).textContent = splitfilename(tilename)
+
+        button.appendChild(label).id=`tile-selector-${tilename}-tooltip`
+        let tooltip = document.getElementById(`tile-selector-${tilename}-tooltip`)
+        tooltip.textContent = splitFilename(tilename)
+        tooltip.classList.add('controller-tile-selector-button-tooltiptext')
+
         button.appendChild(img).src = tile.path
-        console.log(button)
+        button.addEventListener('mouseup', ()=>{
+            caller.actionManager.selectedTile = tilename
+        })
     })
 }
-
-function splitfilename(filename) {
+/**
+ * Returns "foo bar" from "foo_bar"
+*/
+function splitFilename(filename) {
     let x = ""
     let a = filename.split('_')
     for (let i=0; i < a.length; i++) {
         x += a[i]
-        x+= " "
+        x = (i != a.length - 1)? x + " " : x
     }
     return x
 }

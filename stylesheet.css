@@ -182,6 +182,7 @@ body {
 
 .hovered {
     background: #663366;
+    background-blend-mode: lighten;
 }
 
 /******************************/
@@ -324,17 +325,29 @@ input[type="text"], input[type="number"], input[type="text"]  {
 
 .controller-tile-selector-button {
     margin: 10px;
+    position: relative;
+    background-color: black;
+}
+
+.controller-tile-selector-button-tooltiptext {
+    position: absolute;
+    top: 0;
+    left: 105%;
+    visibility: hidden;
+    background-color: black;
+    border: 1px solid white;
+    padding: 5px;
+    outline: 2px black;
+}
+
+.controller-tile-selector-button:hover .controller-tile-selector-button-tooltiptext {
+    visibility: visible;
 }
 
 .controller-tile-selector-button img{
-    height: 100px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     image-rendering: pixelated;
-}
-
-.controller-tile-selector-button p {
-    width: 100%;
-    margin: 0 auto;
 }
 
 #grid-mount {
