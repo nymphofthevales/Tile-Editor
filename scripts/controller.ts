@@ -3,6 +3,7 @@ import { Grid } from "./grid.js"
 import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
+import { Direction } from "./direction.js"
 
 
 export class GridController {
@@ -50,6 +51,7 @@ export class ActionManager {
     ident: string
     currentActionMode: Function
     selectedTile: string
+    expansionAmount: number
     constructor(grid, selector, renderer, ident) {
         this.grid = grid
         this.selector = selector
@@ -57,6 +59,9 @@ export class ActionManager {
         this.ident = ident
         this.currentActionMode = this.draw_tiles
         this.selectedTile = "none"
+        this.expansionAmount = 5
+
+        this.setupExpansionListeners()
     }
     select_deselect([x,y]): void {
         let selector = this.selector
@@ -74,6 +79,32 @@ export class ActionManager {
     }
     drag_select([x1,y1], [x2,y2]): void {
 
+    }
+    setupExpansionListeners(): void {
+        let actionManager = this;
+        let renderer = this.renderer
+        let grid = this.grid
+        let selector = this.selector
+        document.getElementById('expand-top').addEventListener('mouseup', ()=>{
+            grid.increaseHeight(actionManager.expansionAmount, "top")
+            console.log(grid.rows)
+            renderer.resolveData_DocumentDeltas(grid)
+        })
+        document.getElementById('expand-right').addEventListener('mouseup', ()=>{
+            grid.increaseWidth(actionManager.expansionAmount, "right")
+            console.log(grid.rows)
+            renderer.resolveData_DocumentDeltas(grid)
+        })
+        document.getElementById('expand-bottom').addEventListener('mouseup', ()=>{
+            grid.increaseHeight(actionManager.expansionAmount, "bottom")
+            console.log(grid.rows)
+            renderer.resolveData_DocumentDeltas(grid)
+        })
+        document.getElementById('expand-left').addEventListener('mouseup', ()=>{
+            grid.increaseWidth(actionManager.expansionAmount, "left")
+            console.log(grid.rows)
+            renderer.resolveData_DocumentDeltas(grid)
+        })
     }
 }
 
@@ -245,12 +276,6 @@ function fillTileMenu(caller: GridController, tileset: Tileset, target: string) 
         menu.appendChild(btn).id=`tile-selector-${tilename}`
         let button = document.getElementById(`tile-selector-${tilename}`)
         button.classList.add("controller-tile-selector-button")
-
-        button.appendChild(label).id=`tile-selector-${tilename}-tooltip`
-        let tooltip = document.getElementById(`tile-selector-${tilename}-tooltip`)
-        tooltip.textContent = splitFilename(tilename)
-        tooltip.classList.add('controller-tile-selector-button-tooltiptext')
-
         button.appendChild(img).src = tile.path
         button.addEventListener('mouseup', ()=>{
             caller.actionManager.selectedTile = tilename

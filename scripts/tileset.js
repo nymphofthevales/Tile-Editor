@@ -12,7 +12,7 @@ export class Tileset {
     }
     /**
      * Runs a callback function over every tile in the set.
-     * callback gains access to each tile's name, and it's Tile instance.
+     * callback gains access to each tile's name, and its Tile instance.
      * @example callback(tilename: string, this.tiles[tilename]: Tile)
     * @param callback
     */

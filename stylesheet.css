@@ -19,11 +19,44 @@ body {
     justify-content: center;
     align-items: center;
     overflow: scroll;
+    padding: 100px;
 }
 
 .grid-renderer-frame {
     display: flex;
     flex-direction: column-reverse;
+}
+
+#grid-mount {
+    position: relative;
+}
+.expand-button {
+    position: absolute;
+    padding: 0;
+    border: none;
+    font-size: large;
+    height: 50px;
+    width: 50px;
+}
+#expand-top {
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#expand-right {
+    right: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+#expand-bottom {
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#expand-left {
+    left: -60px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .grid-row {
@@ -329,29 +362,10 @@ input[type="text"], input[type="number"], input[type="text"]  {
     background-color: black;
 }
 
-.controller-tile-selector-button-tooltiptext {
-    position: absolute;
-    top: 0;
-    left: 105%;
-    visibility: hidden;
-    background-color: black;
-    border: 1px solid white;
-    padding: 5px;
-    outline: 2px black;
-}
-
-.controller-tile-selector-button:hover .controller-tile-selector-button-tooltiptext {
-    visibility: visible;
-}
-
 .controller-tile-selector-button img{
     height: 50px;
     width: 50px;
     image-rendering: pixelated;
-}
-
-#grid-mount {
-    overflow: scroll;
 }
 
 #CTRL-MENU-TOGGLE {

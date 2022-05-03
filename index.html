@@ -29,7 +29,12 @@
                     </div>
                 </div>
                 <div id="grid-frame" class="opaque outlined fill-parent">
-                    <div id="grid-mount" class="opaque"></div>
+                    <div id="grid-mount" class="opaque">
+                        <button id="expand-top" class="expand-button">+</button>
+                        <button id="expand-right" class="expand-button">+</button>
+                        <button id="expand-bottom" class="expand-button">+</button>
+                        <button id="expand-left" class="expand-button">+</button>
+                    </div>
                 </div>
                 <button id="CTRL-MENU-TOGGLE">toggle menu</button>
             </div>
@@ -61,9 +66,6 @@
                         <select name="NEWMAP-TILESET" id="NEWMAP-TILESET" value="labyrinth">
                             <option value="labyrinth" selected>Labyrinth Default Tileset</option>
                         </select>
-                        <p>
-                            Tileset should be a folder of pngs. Nested folders are allowed.
-                        </p>
                         <div class="horz-flex">
                             <button id="NEWMAP-SUBMIT">Make</button>
                             <button id="NEWMAP-CLOSE">Cancel</button>
