@@ -15,11 +15,9 @@ body {
 }
 
 #grid-frame {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     overflow: scroll;
-    padding: 100px;
+    position: relative;
+    display: flex;
 }
 
 .grid-renderer-frame {
@@ -27,8 +25,18 @@ body {
     flex-direction: column-reverse;
 }
 
+#grid-mount-container {
+    margin: auto;
+    padding: 150px;
+    box-sizing: border-box;
+    width: max-content;
+    height: max-content;
+}
+
 #grid-mount {
     position: relative;
+    width: max-content;
+    height: max-content;
 }
 .expand-button {
     position: absolute;
