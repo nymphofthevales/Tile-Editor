@@ -29,6 +29,9 @@ export class GridRenderer {
         this.tileset = tileset? tileset : undefined
         this.createFrame(target)
     }
+    /**
+     * Adds a frame div into the target element in which to mount the grid rows.
+    */
     createFrame(targetElement: HTMLElement): void {
         if (document.getElementById("Grid_Renderer_Frame" + this.identifier) == null) {
             let div = document.createElement("div")
@@ -37,43 +40,90 @@ export class GridRenderer {
             this.frame.classList.add('grid-renderer-frame')
         }
     }
+    /**
+     * @TODO
+     * @see {@link staticRender}
+    */
     staticRenderPreset(preset: GridPreset) {
         let grid = generateGridFromPreset(preset)
         this.staticRender(grid)
     }
+    /**
+     * Creates a renderer without a selection box on it, for the user to look at but not interact with.
+    */
     staticRender(grid: Grid) {
 
     }
+    /**
+     * Builds a DOM grid from the Grid with full selection functionality.
+    */
     dynamicRender(grid: Grid, gridSelector: GridSelector) {
         this.resolveData_DocumentDeltas(grid)
         this.renderSelection(gridSelector)
     }
+    /**
+     * Ensures only cells contained in the selector are rendered as selected.
+     * Similar to {@link resolveData_DocumentDeltas}.
+    */
     resolveSelection_DocumentDeltas(selector: GridSelector): void {
         let selectedCells = document.getElementsByClassName("selected")
         let toRemove = []
         for (let i=0; i < selectedCells.length; i++) {
-            let [x,y] = getCoordsFromCellReference(selectedCells[i].id)
+            let [x,y] = getCoordsFromCellReference(selectedCells[i])
             if (!selector.selection.hasCell([x,y])) {
                 toRemove.push(selectedCells[i])
             }
         }
-        for (let i = 0; i< toRemove.length; i++) {
-            toRemove[i].classList.remove("selected")
+        this.fulfillSelectionRemovalQueue(toRemove)
+    }
+    /**
+     * Deselects all cells in queue.
+     * @see {@link derenderCellSelection}
+    */
+    fulfillSelectionRemovalQueue(removalQueue: Array<HTMLElement>): void {
+        for (let i = 0; i< removalQueue.length; i++) {
+            this.derenderCellSelection(removalQueue[i])
         }
     }
+    /**
+     * Renders selector onto DOM grid.
+     * @see {@link renderCellSelection}
+    */
     renderSelection(selector: GridSelector): void {
         let grid = selector.childGrid
         this.resolveSelection_DocumentDeltas(selector)
         selector._iterateOverSelection((opts) => {
-            this.renderCellSelection(grid, selector, opts.initialPosition)
+            let [cellX, cellY] = opts.initialPosition;
+            let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
+            this.renderCellSelection(HTMLCellReference)
         })
     }
-    renderCellSelection( grid: Grid, selector: GridSelector, [cellX, cellY]: Coordinate): void {
-        let currentCell = grid.cell([cellX, cellY])
-        let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
-        HTMLCellReference.classList.add('selected')
-        //this.renderAdjacentCellBorders(grid, selector, currentCell, HTMLCellReference)
+    /**
+     * Iterates over whole grid to deselect every cell.
+     */
+     removeSelection(selector: GridSelector): void {
+        let renderer = this
+        selector.selection.forEachCell((cell, grid, renderer) => {
+            let HTMLCellReference = getCellReference(cell.XYCoordinate, this.identifier)
+            renderer.derenderCellSelection(HTMLCellReference)
+        })
     }
+    /**
+     * Renders selection on cell by giving it a style class.
+    */
+     renderCellSelection(cell: HTMLElement): void {
+        cell.classList.add('selected')
+    }
+    /**
+     * Derenders selection on cell by removing its style class.
+    */
+    derenderCellSelection(cell: HTMLElement): void {
+        cell.classList.remove('selected')
+    }
+    /**
+     * @TODO
+     * For multiple selections, for every cell, hides border of cell if and only if the adjacent cell in that direction is also selected.
+    */
     renderAdjacentCellBorders(grid: Grid, selector: GridSelector, currentCell: Cell, HTMLCellReference: HTMLElement): void {
         let adjacencies = currentCell.adjacentCells
         for (let i = 0; i < PerpendicularDirections.length; i++) {
@@ -92,48 +142,56 @@ export class GridRenderer {
         }
     }
     /**
-     * Takes in a user-defined callback function for extracting tileset keys from cell data.
+     * @TODO
+     * Places a custom border style on all sides of a cell individually.
     */
-    renderTileset(grid: Grid) {
-        grid.forEachCell((cell, grid) => {
-            this.renderTile(cell)
-        })
-    }
-    renderTile(cell: Cell) {
-        let tilename = cell.data.tile
-        if (tilename != undefined) {
-            let HTMLCellReference = getCellReference(cell.XYCoordinate, this.identifier)
-            let imgPath = this.tileset.get(tilename).path
-            HTMLCellReference.style.backgroundImage = `url(\"${imgPath}\")`
-        }
-    }
-    /**
-     * Resets grid to be totally deselected. 
-     */
-    removeSelection(selector: GridSelector): void {
-        let renderer = this
-        selector.selection.forEachCell((cell, grid, renderer) => {
-            renderer.deselectCell(cell.XYCoordinate)
-        })
-
-    }
-    deselectCell([cellX, cellY]: Coordinate): void {
-        let HTMLCellReference = getCellReference([cellX, cellY], this.identifier)
-        HTMLCellReference.classList.remove('selected')
-        //this.removeCellBorders([cellX, cellY], HTMLCellReference)
-    }
     removeCellBorders([cellX, cellY]: Coordinate, HTMLCellReference: HTMLElement): void {
         for (let i = 0; i < PerpendicularDirections.length; i++) {
             let direction = PerpendicularDirections[i]
             HTMLCellReference.style['border-' + direction] = this.styles.grid.borderDefault
         }
     }
-    resolveData_DocumentDeltas(grid: Grid) {
+    /**
+     * Iterates across whole grid to place tiles images.
+    */
+    renderTileset(grid: Grid) {
+        grid.forEachCell((cell, grid) => {
+            this.renderTile(cell)
+        })
+    }
+    /**
+     * Sets tile image specified on cell in data as the background image for the cell in the DOM.
+    */
+    renderTile(cell: Cell) {
+        let tilename = cell.data.tile
+        if (tilename != undefined) {
+            let HTMLCellReference = getCellReference(cell.XYCoordinate, this.identifier)
+            if (this.tileset) {
+                let imgPath = this.tileset.get(tilename)?.path
+                HTMLCellReference.style.backgroundImage = `url(\"${imgPath}\")`
+            }
+        }
+    }
+    /**
+     * Ensures that the DOM grid matches the Grid in data. 
+     * @see {@link checkRowsInDocument}
+     * @see {@link checkCellsInDocument}
+     * @see {@link checkRowsInGrid}
+    */
+    resolveData_DocumentDeltas(grid: Grid): void {
         this.checkRowsInDocument(grid)
         this.checkCellsInDocument(grid)
         this.checkRowsInGrid(grid)
     }
-    checkRowsInGrid(grid: Grid) {
+    /**
+     * Checks each row in data exists in the DOM. 
+     * If it does, checks over cells in that row. 
+     * If it doesn't, adds that row to DOM.
+     * @see {@link documentHasRow}
+     * @see {@link checkCellsInRowInGrid}
+     * @see {@link addRowToDocument}
+    */
+    checkRowsInGrid(grid: Grid): void {
         grid.rows.forEach((row,YPosition) => {
             if (documentHasRow(YPosition,this.identifier)) {
                 this.checkCellsInRowInGrid(row,YPosition)
@@ -142,14 +200,24 @@ export class GridRenderer {
             } 
         })
     }
-    checkCellsInRowInGrid(row,YPosition) {
+    /**
+     * Checks each cell in row data exists in DOM.
+     * If it doesn't, adds a cell with that [x,y].
+     * @see {@link documentHasCell}
+     * @see {@link addCellToDocument}
+    */
+    checkCellsInRowInGrid(row: Row,YPosition: number): void {
         row.columns.forEach((column,XPosition,grid) => {
             if (!documentHasCell([XPosition,YPosition], this.identifier)) {
                 this.addCellToDocument([XPosition,YPosition])
             }
         })
     }
-    checkRowsInDocument(grid: Grid) {
+    /**
+     * Checks over rows in DOM, and removes them if a Row at that YPosition doesn't exist in data.
+     * @see {@link fulfillRowRemovalQueue}
+    */
+    checkRowsInDocument(grid: Grid): void {
         let rows = document.getElementsByClassName('grid-row-in-' + this.identifier)
         let removalQueue: Array<Node> = []
         for (let i=0; i < rows.length; i++) {
@@ -162,7 +230,11 @@ export class GridRenderer {
         }
         this.fulfillRowRemovalQueue(removalQueue)
     }
-    checkCellsInDocument(grid: Grid) {
+    /**
+     * Checks over cells in DOM, and removes them is a Cell at that [x,y] doesn't exist in data.
+     * @see {@link fulfillCellRemovalQueue}
+    */
+    checkCellsInDocument(grid: Grid): void {
         let cells = document.getElementsByClassName('grid-cell-in-' + this.identifier)
         let removalQueue: Array<[Node,number]> = []
         for (let i = 0; i < cells.length; i++) {
@@ -176,7 +248,11 @@ export class GridRenderer {
         }
         this.fulfillCellRemovalQueue(removalQueue)
     }
-    addRowToDocument(row,YPosition) {
+    /**
+     * Adds a row to the DOM at the specified YPosition, and fills it with cells.
+     * @see {@link addCellToDocument}
+    */
+    addRowToDocument(row: Row,YPosition: number): void {
         let HTMLRow = document.createElement("div")
         this.frame.appendChild(HTMLRow).id = `row ${YPosition}` + ' ' + this.identifier
         let HTMLRowReference = getRowReference(YPosition, this.identifier)
@@ -189,7 +265,10 @@ export class GridRenderer {
             }
         })
     }
-    addCellToDocument([XPosition, YPosition]: Coordinate) {
+    /**
+     * Adds a cell to the DOM at the XYCoordinate specified.
+    */
+    addCellToDocument([XPosition, YPosition]: Coordinate): void {
         let div = document.createElement("div")
         let HTMLRowReference = getRowReference(YPosition, this.identifier)
         HTMLRowReference.appendChild(div).id = `cell ${XPosition} ${YPosition}` + ' ' + this.identifier
@@ -198,12 +277,20 @@ export class GridRenderer {
         HTMLCellReference.classList.add('grid-cell-in-' + this.identifier)
         HTMLCellReference.style.order = `${XPosition}`
     }
+    /**
+     * Iterates through a removalQueue and removes each row from the DOM.
+     * @see {@link removeRowFromDocument}
+    */
     fulfillRowRemovalQueue(removalQueue: Array<Node>) {
         for (let i = 0; i < removalQueue.length; i++) {
             let row = removalQueue[i]
             this.removeRowFromDocument(row)
         }
     }
+    /**
+     * Iterates through a removalQueue and removes each cell from the DOM.
+     * @see {@link removeCellFromDocument}
+    */
     fulfillCellRemovalQueue(removalQueue: Array<[Node,number]>) {
         for (let i = 0; i < removalQueue.length; i++) {
             let cell = removalQueue[i][0]
@@ -211,28 +298,50 @@ export class GridRenderer {
             this.removeCellFromDocument(cell, YPosition)
         }
     }
+    /**
+     * Removes a row from the DOM.
+    */
     removeRowFromDocument(row) {
         this.frame.removeChild(row)
     }
+    /**
+     * Removes a cell from the DOM.
+    */
     removeCellFromDocument(cell,YPosition) {
         let row = getRowReference(YPosition, this.identifier)
         row.removeChild(cell)
     }
 }
 
-function getRowReference(y: number, identifier: string) {
+/**
+ * Generates the id for and gets a row from the DOM.
+*/
+function getRowReference(y: number, identifier: string): HTMLElement {
     return document.getElementById(`row ${y}` + ' ' + identifier)
 }
-export function getCellReference([x,y]:Coordinate, identifier: string) {
+/**
+ * Generates the id for and gets a cell from the DOM.
+*/
+export function getCellReference([x,y]:Coordinate, identifier: string): HTMLElement {
     return document.getElementById(`cell ${x} ${y}` + ' ' + identifier)
 }
+/**
+ * Checks whether a cell exists in the DOM with the specified XYCoordinate.
+*/
 function documentHasCell([x,y]: Coordinate, identifier: string): boolean {
     return getCellReference([x,y], identifier) != null
 }
+/**
+ * Checks whether a row exists in the DOM with the specified YCoordinate.
+*/
 function documentHasRow(y: number, identifier: string): boolean {
     return getRowReference(y, identifier)!= null
 }
-function getCoordsFromCellReference(id: string): Array<number> {
+/**
+ * Generate the coordinate pair for a cell.
+*/
+function getCoordsFromCellReference(cellReference: Element | HTMLElement): Array<number> {
+    let id = cellReference.id
     let [cell, xCoord, yCoord, identifier] = id.split(" ")
     let x = parseInt(xCoord)
     let y = parseInt(yCoord)
