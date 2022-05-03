@@ -1,4 +1,4 @@
-import { isEven, absNegative } from './numerical_helpers.js';
+import { absNegative } from './numerical_helpers.js';
 /**
  * Generates an array of numbers representing labels on a coordinate axis.
  * Sizes are always made odd to allow a centre at (0,0).
@@ -17,16 +17,18 @@ import { isEven, absNegative } from './numerical_helpers.js';
  * generateCoordinateAxis(0)
  * // Returns []
  */
-export function generateCoordinateAxis(size) {
+export function generateCoordinateAxis(size, from) {
     let distanceFromOrigin;
     let axis = [];
     if (size != 0) {
-        if (isEven(size)) {
-            size += 1;
+        if (from) {
+            distanceFromOrigin = absNegative(from);
         }
-        distanceFromOrigin = Math.floor(size / 2);
+        else {
+            distanceFromOrigin = absNegative((size - (size % 2)) / 2);
+        }
         for (let i = 0; i < size; i++) {
-            axis.push(absNegative(distanceFromOrigin) + i);
+            axis.push(distanceFromOrigin + i);
         }
     }
     return axis;

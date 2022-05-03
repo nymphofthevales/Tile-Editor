@@ -60,7 +60,7 @@ export class Row {
     parentGrid: Grid
     columns: Map<number,Cell> = new Map();
     verticalPosition: number = 0
-    constructor(width: number, verticalPosition: number, parentGrid: Grid, fillCells: boolean = true) {
+    constructor(width: number, verticalPosition: number, parentGrid: Grid, fillCells: boolean = true, from?: number) {
         this.parentGrid = parentGrid
         this.verticalPosition = verticalPosition;
         if (fillCells === true) {
@@ -109,8 +109,8 @@ export class Row {
      * @param width 
      * @param verticalPosition 
      */
-    fillColumns(width: number,verticalPosition: number): void {
-        let XAxis = generateCoordinateAxis(width)
+    fillColumns(width: number,verticalPosition: number, from?: number): void {
+        let XAxis = generateCoordinateAxis(width, from)
         for (let i = 0; i < XAxis.length; i++) {
             this.set( XAxis[i] , new Cell(XAxis[i], verticalPosition, this.parentGrid, this) )
         }
@@ -204,7 +204,14 @@ export class Grid {
     get top(): number {
         return Math.max(...this.CurrentYAxis)
     }
+    get left(): number {
+        return this.rows.get(this.bottom).left
+    }
+    get right(): number {
+        return this.rows.get(this.bottom).right
+    }
     get CurrentYAxis(): Array<number> {
+        console.log(`currentYAxis: ${JSON.stringify(parseMapKeysToArray(this.rows))}`)
         return parseMapKeysToArray(this.rows)
     }
     /**
@@ -314,11 +321,13 @@ export class Grid {
     _addRowsToBottom(amount: number,YAxis: CoordinateAxis): void {
         //needs to add to the beginning of the map; reassignment of order necessary
         let verticalPosition = this.bottom - amount
+        let left = this.left
         let oldMapCopy = new Map(this.rows)
         let width = this.width
         this.rows.clear()
         for (let i = 0; i < amount; i++) {
-            this.set(verticalPosition,new Row(width,verticalPosition, this))
+            console.log(this.top)
+            this.set(verticalPosition,new Row(width,verticalPosition, this, true, left))
             verticalPosition++
         }
         this.rows = concatenateMaps(oldMapCopy,this.rows)

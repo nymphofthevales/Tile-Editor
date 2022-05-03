@@ -21,16 +21,17 @@ export type CoordinateAxis = Array<number>
  * generateCoordinateAxis(0)
  * // Returns []
  */
-export function generateCoordinateAxis(size: number): CoordinateAxis {
+export function generateCoordinateAxis(size: number, from?: number): CoordinateAxis {
     let distanceFromOrigin: number;
     let axis = [];
     if (size != 0) {
-        if (isEven(size)) {
-            size += 1
+        if (from) {
+            distanceFromOrigin = absNegative(from)
+        } else {
+            distanceFromOrigin = absNegative( (size - (size%2)) / 2 )
         }
-        distanceFromOrigin = Math.floor(size/2)
         for (let i = 0; i < size; i++) {
-            axis.push(absNegative(distanceFromOrigin) + i)
+            axis.push(distanceFromOrigin + i)
         }
     }
     return axis

@@ -42,7 +42,7 @@ export class Cell {
  * For a Row which is part of a larger Grid, Row size modification methods are not intended to be called directly but instead through it's parent Grid.
  */
 export class Row {
-    constructor(width, verticalPosition, parentGrid, fillCells = true) {
+    constructor(width, verticalPosition, parentGrid, fillCells = true, from) {
         this.columns = new Map();
         this.verticalPosition = 0;
         this.parentGrid = parentGrid;
@@ -93,8 +93,8 @@ export class Row {
      * @param width
      * @param verticalPosition
      */
-    fillColumns(width, verticalPosition) {
-        let XAxis = generateCoordinateAxis(width);
+    fillColumns(width, verticalPosition, from) {
+        let XAxis = generateCoordinateAxis(width, from);
         for (let i = 0; i < XAxis.length; i++) {
             this.set(XAxis[i], new Cell(XAxis[i], verticalPosition, this.parentGrid, this));
         }
@@ -187,7 +187,14 @@ export class Grid {
     get top() {
         return Math.max(...this.CurrentYAxis);
     }
+    get left() {
+        return this.rows.get(this.bottom).left;
+    }
+    get right() {
+        return this.rows.get(this.bottom).right;
+    }
     get CurrentYAxis() {
+        console.log(`currentYAxis: ${JSON.stringify(parseMapKeysToArray(this.rows))}`);
         return parseMapKeysToArray(this.rows);
     }
     /**
@@ -301,11 +308,13 @@ export class Grid {
     _addRowsToBottom(amount, YAxis) {
         //needs to add to the beginning of the map; reassignment of order necessary
         let verticalPosition = this.bottom - amount;
+        let left = this.left;
         let oldMapCopy = new Map(this.rows);
         let width = this.width;
         this.rows.clear();
         for (let i = 0; i < amount; i++) {
-            this.set(verticalPosition, new Row(width, verticalPosition, this));
+            console.log(this.top);
+            this.set(verticalPosition, new Row(width, verticalPosition, this, true, left));
             verticalPosition++;
         }
         this.rows = concatenateMaps(oldMapCopy, this.rows);
