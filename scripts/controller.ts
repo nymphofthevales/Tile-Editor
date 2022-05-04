@@ -4,6 +4,7 @@ import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
 import { Direction } from "./direction.js"
+import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
 
 
 export class GridController {
@@ -28,6 +29,7 @@ export class GridController {
         this.actionManager = new ActionManager(this.workingGrid, this.workingSelector, this.workingRenderer, this.ident)
         this.keyboardManager = new KeyboardManager(this.actionManager)
         this.mouseManager = new MouseManager(this.actionManager)
+        this.actionManager.mouseManager = this.mouseManager
     }
     start() {
         this.render()
@@ -48,7 +50,10 @@ export class ActionManager {
     grid: Grid
     selector: GridSelector
     renderer: GridRenderer
+    zoomManager: ZoomManager
+    mouseManager: MouseManager
     ident: string
+
     currentActionMode: Function
     selectedTile: string
     expansionAmount: number
@@ -57,6 +62,7 @@ export class ActionManager {
         this.selector = selector
         this.renderer = renderer
         this.ident = ident
+
         this.currentActionMode = this.draw_tiles
         this.selectedTile = "none"
         this.expansionAmount = 5
@@ -82,29 +88,39 @@ export class ActionManager {
     }
     setupExpansionListeners(): void {
         let actionManager = this;
-        let renderer = this.renderer
-        let grid = this.grid
-        let selector = this.selector
         document.getElementById('expand-top').addEventListener('mouseup', ()=>{
-            grid.increaseHeight(actionManager.expansionAmount, "top")
-            console.log(grid.rows)
-            renderer.resolveData_DocumentDeltas(grid)
+            actionManager.expandGrid('top')
         })
         document.getElementById('expand-right').addEventListener('mouseup', ()=>{
-            grid.increaseWidth(actionManager.expansionAmount, "right")
-            console.log(grid.rows)
-            renderer.resolveData_DocumentDeltas(grid)
+            actionManager.expandGrid('right')
         })
         document.getElementById('expand-bottom').addEventListener('mouseup', ()=>{
-            grid.increaseHeight(actionManager.expansionAmount, "bottom")
-            console.log(grid.rows)
-            renderer.resolveData_DocumentDeltas(grid)
+            actionManager.expandGrid('bottom')
         })
         document.getElementById('expand-left').addEventListener('mouseup', ()=>{
-            grid.increaseWidth(actionManager.expansionAmount, "left")
-            console.log(grid.rows)
-            renderer.resolveData_DocumentDeltas(grid)
+            actionManager.expandGrid('left')
         })
+    }
+    expandGrid(direction: Direction): void {
+        switch (direction) {
+            case "top":
+            case "bottom":
+                this.grid.increaseHeight(this.expansionAmount, direction)
+                break;
+            case "left":
+            case "right":
+                this.grid.increaseWidth(this.expansionAmount, direction)
+                break;
+        }
+        this.renderer.resolveData_DocumentDeltas(this.grid)
+        this.zoomManager.setZoom('grid-cell')
+        this.mouseManager.setupListeners()
+    }
+    hideBorders() {
+        removeClassFromAllMembers('grid-cell', 'default-cell-border')
+    }
+    showBorders() {
+        addClassToAllMembers('grid-cell', 'default-cell-border')
     }
 }
 
@@ -114,6 +130,7 @@ class KeyboardManager  {
     constructor(actionManager) {
         this.actionManager = actionManager
         this.zoomManager = new ZoomManager()
+        actionManager.zoomManager = this.zoomManager;
     }
     zoomIn() {
         this.zoomManager.zoomIn()
@@ -218,15 +235,15 @@ class ZoomManager {
         this.minZoom = min
     }
     setDefaultZoom() {
-        this.adjustZoom("grid-row")
-        this.adjustZoom("grid-cell")
+        this.setZoom("grid-row")
+        this.setZoom("grid-cell")
     }
     zoomIn() {
         console.log('zoomin')
         if (this.zoomSize != this.maxZoom) {
             this.zoomSize += 1
-            this.adjustZoom("grid-row")
-            this.adjustZoom("grid-cell")
+            this.setZoom("grid-row")
+            this.setZoom("grid-cell")
             this.prevZoom += 1
         }
     }
@@ -234,20 +251,24 @@ class ZoomManager {
         console.log('zoomout')
         if (this.zoomSize != this.minZoom) {
             this.zoomSize -= 1
-            this.adjustZoom("grid-row")
-            this.adjustZoom("grid-cell")
+            this.setZoom("grid-row")
+            this.setZoom("grid-cell")
             this.prevZoom -= 1
         }
     }
-    adjustZoom(className: string) {
-        let elements = document.getElementsByClassName(className)
-        for (let i=0; i < elements.length; i++) {
-            this.clearSizeClasses(elements[i])
-            elements[i].classList.add(`grid-h-${this.zoomSize}`)
-            if (className != "grid-row") {
-                elements[i].classList.add(`grid-w-${this.zoomSize}`)
+    /**
+     * Iterates over all elements of a class and applies the appropriate size class.
+    */
+    setZoom(targetClass: string) {
+        let zoomManager = this
+        let size = this.zoomSize
+        forEachInClass(targetClass, (elem: HTMLElement)=>{
+            zoomManager.clearSizeClasses(elem)
+            elem.classList.add(`grid-h-${size}`)
+            if (!elem.classList.contains("grid-row")) {
+                elem.classList.add(`grid-w-${size}`)
             }
-        }
+        })
     }
     clearSizeClasses(element: Element): void {
         let height = `grid-h-${this.prevZoom}`

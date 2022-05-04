@@ -200,6 +200,9 @@ body {
 
 .grid-cell {
     background-color: black;
+}
+
+.cell-default-border {
     border: 1px dotted #555555;
 }
 
