@@ -5,15 +5,10 @@
  * // returns [-1,0,1]
  */
 export function parseMapKeysToArray(map) {
-    let iterable = map.keys();
-    let next;
     let array = [];
-    do {
-        next = iterable.next();
-        if (next.value != undefined) {
-            array.push(next.value);
-        }
-    } while (next.done === false);
+    map.forEach((value, key, map) => {
+        array.push(key);
+    });
     return array;
 }
 /**
@@ -39,10 +34,9 @@ export function concatenateMaps(source, target) {
  * @param map
  */
 export function insertElementInMap(map, indexToInsert, elementToInsert, reverse = false) {
-    let array = [];
     let sortedMap = new Map();
     let comparatorFunction = getSortComparator(reverse);
-    array = fillArrayWithMapKeys(array, map);
+    let array = parseMapKeysToArray(map);
     array.push(indexToInsert);
     array.sort(comparatorFunction);
     for (let i = 0; i < array.length; i++) {
@@ -56,15 +50,66 @@ export function insertElementInMap(map, indexToInsert, elementToInsert, reverse 
     }
     return sortedMap;
 }
+/**
+ * Produces a comparator function between two numbers for use in Array.sort().
+ * @see {@link Array.sort}
+*/
 function getSortComparator(reverse) {
     switch (reverse) {
         case false: return (a, b) => { return a - b; };
         case true: return (a, b) => { return b - a; };
     }
 }
-function fillArrayWithMapKeys(array, map) {
-    map.forEach((value, key, map) => {
-        array.push(key);
-    });
-    return array;
+/**
+ * Converts an array of elements to a map with those elements as its values, keyed by their indices.
+ * @example arrayToMap( ['foo', 'bar', 'baz'] )
+ * // returns {0 => 'foo', 1 => 'bar', 2 => 'baz'}
+*/
+export function arrayToMap(array) {
+    let map = new Map();
+    for (let i = 0; i < array.length; i++) {
+        map.set(i, array[i]);
+    }
+    return map;
+}
+/**
+ * Produces the inverse of a mapping, wherein the values of the map passed become keys, and the keys become values.
+ * @example invertMap({1 => "foo", 2 => "bar"})
+ * // returns {"foo" => 1, "bar" => 2}
+*/
+export function invertMap(map) {
+    let invertedMap = new Map();
+    let entries = map.entries();
+    for (let entry of entries) {
+        let [key, val] = entry;
+        invertedMap.set(val, key);
+    }
+    return invertedMap;
+}
+/**
+ * Converts an array of elements into a circular relation set with each element related to the next.
+ * @example arrayToCircularRelation( [a,b,c] )
+ * // returns [ [a,b], [b,c], [c,a] ]
+*/
+export function arrayToCircularRelation(array) {
+    let relation = [];
+    for (let i = 0; i < (array.length - 1); i++) {
+        relation.push([array[i], array[i + 1]]);
+    }
+    relation.push([array[array.length - 1], array[0]]);
+    return relation;
+}
+/**
+ * Converts a relation set to a map.
+ * @example relationToMap( [ [a,b], [b,c] ,[c,a] ] )
+ * // returns { a => b, b => c, c => a}
+*/
+export function relationToMap(relation) {
+    let map = new Map();
+    for (let i = 0; i < relation.length; i++) {
+        let pair = relation[i];
+        let [key, val] = pair;
+        map.set(key, val);
+    }
+    return map;
 }

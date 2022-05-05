@@ -59,15 +59,19 @@
                     <label for="NEWMAP-FORM">
                         <h2>New map settings</h2>
                     </label>
-                    <form action="javascript:void(0);" id="NEWMAP-FORM" class="outlined vert-flex">
+                    <form action="javascript:void(0);" id="NEWMAP-FORM" name="newmap-form" class="outlined vert-flex">
                         <label for="NEWMAP-WIDTH" class="setup-form-label">Width</label>
                         <input type="number" value="10" name="NEWMAP-WIDTH" id="NEWMAP-WIDTH">
+
                         <label for="NEWMAP-HEIGHT" class="setup-form-label">Height</label>
                         <input type="number" value="10" name="NEWMAP-HEIGHT" id="NEWMAP-HEIGHT">
+
                         <label for="NEWMAP-TILESET" class="setup-form-label">Tileset:</label>
-                        <select name="NEWMAP-TILESET" id="NEWMAP-TILESET" value="labyrinth">
-                            <option value="labyrinth" selected>Labyrinth Default Tileset</option>
+                        <select name="NEWMAP-TILESET" id="NEWMAP-TILESET">
+                            <option value="">None</option>
+                            <option value="labyrinth" name="labyrinth" selected>Labyrinth Default Tileset</option>
                         </select>
+
                         <div class="horz-flex">
                             <button id="NEWMAP-SUBMIT">Make</button>
                             <button id="NEWMAP-CLOSE">Cancel</button>

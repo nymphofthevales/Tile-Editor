@@ -1,17 +1,26 @@
 const path = require( 'path' )
 const fs = require('fs')
 import { extractFilename, iterateOnImageFiles } from './file_helpers.js'
+import { RotationGroup } from './RotationGroup.js'
 
 export class Tileset {
     _path: string
     _tiles: object
+    
     constructor(path: string) {
         this._path = path
         this._tiles = {}
         this.construct()
     }
-    get(tileName) {
+    get(tileName: string): Tile {
         return this._tiles[tileName]
+    }
+    getMultiple(tileNames: Array<string>): Array<Tile> {
+        let tiles = []
+        for (let i=0; i< tileNames.length; i++) {
+            tiles.push( this.get(tileNames[i]) )
+        }
+        return tiles
     }
     /**
      * Runs a callback function over every tile in the set.

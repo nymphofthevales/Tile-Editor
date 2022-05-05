@@ -1,0 +1,22 @@
+{
+    "name": "Labyrinth Node Tiles",
+    "rotation_groups": [
+        {
+            "representative_tile": "node_r",
+            "group": ["node_r","node_d","node_l","node_u"]
+        },
+        {
+            "representative_tile": "node_dr",
+            "group": ["node_dr","node_ld","node_lu","node_ur"]
+        },
+        {
+            "representative_tile": "node_ldr",
+            "group": ["node_ldr","node_lud","node_lur","node_urd"]
+        },
+        {
+            "representative_tile": "node_lr",
+            "group": ["node_ud","node_lr"]
+        }
+    ]
+}
+

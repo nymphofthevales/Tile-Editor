@@ -1,0 +1,19 @@
+
+
+{
+    "name": "Labyrinth Passageway Tiles",
+    "rotation_groups": [
+        {
+            "representative_tile": "dr",
+            "group": ["dr","ld","lu","ur"]
+        },
+        {
+            "representative_tile": "ldr",
+            "group": ["ldr","lud","lur","urd"]
+        },
+        {
+            "representative_tile": "lr",
+            "group": ["ud","lr"]
+        }
+    ]
+}

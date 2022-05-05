@@ -10,6 +10,13 @@ export class Tileset {
     get(tileName) {
         return this._tiles[tileName];
     }
+    getMultiple(tileNames) {
+        let tiles = [];
+        for (let i = 0; i < tileNames.length; i++) {
+            tiles.push(this.get(tileNames[i]));
+        }
+        return tiles;
+    }
     /**
      * Runs a callback function over every tile in the set.
      * callback gains access to each tile's name, and its Tile instance.
