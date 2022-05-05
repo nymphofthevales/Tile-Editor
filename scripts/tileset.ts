@@ -4,9 +4,10 @@ import { extractFilename, iterateOnImageFiles } from './file_helpers.js'
 import { RotationGroup } from './RotationGroup.js'
 
 export class Tileset {
+    name: string
     _path: string
     _tiles: object
-    
+    rotationGroups: Array<RotationGroup>
     constructor(path: string) {
         this._path = path
         this._tiles = {}
