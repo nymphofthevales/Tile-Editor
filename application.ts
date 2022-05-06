@@ -40,6 +40,6 @@ document.getElementById("MENU-NEW").addEventListener('mouseup', ()=>{
 import { Tileset } from "./scripts/tileset.js"
 import { RotationGroup } from "./scripts/RotationGroup.js"
 let labyrinthTiles = new Tileset("./tilesets/labyrinth_passages")
-let corners = new RotationGroup( labyrinthTiles.getMultiple(["dr","ld","lu","ur"]) )
+let untitledTileset = new Tileset("./tilesets/labyrinth_nodes")
 console.log(labyrinthTiles)
-console.log(corners)
+console.log(untitledTileset)

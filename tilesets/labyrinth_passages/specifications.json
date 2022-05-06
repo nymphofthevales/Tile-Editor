@@ -4,14 +4,17 @@
     "name": "Labyrinth Passageway Tiles",
     "rotation_groups": [
         {
+            "name": "corner",
             "representative_tile": "dr",
             "group": ["dr","ld","lu","ur"]
         },
         {
+            "name": "t_intersection",
             "representative_tile": "ldr",
-            "group": ["ldr","lud","lur","urd"]
+            "group": ["ldr","lud","lur","udr"]
         },
         {
+            "name": "straight",
             "representative_tile": "lr",
             "group": ["ud","lr"]
         }
