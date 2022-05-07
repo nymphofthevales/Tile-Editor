@@ -5,6 +5,7 @@ import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
 import { Direction } from "./direction.js"
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
+import { DynamicElement } from "./dynamicElement.js"
 
 
 export class GridController {
@@ -122,7 +123,12 @@ export class ActionManager {
     showBorders() {
         addClassToAllMembers('grid-cell', 'default-cell-border')
     }
+    selectTile(tileName: string): void {
+        this.selectedTile = tileName
+        
+    }
 }
+
 
 class KeyboardManager  {
     zoomManager: ZoomManager
@@ -279,30 +285,39 @@ class ZoomManager {
 }
 
 class ControllerMenu {
+    menu: DynamicElement
+    tileViewer: DynamicElement
 
-    constructor(frame: HTMLElement) {
+    constructor(menu: HTMLElement) {
+        this.menu = new DynamicElement(menu)
+        let viewer = document.getElementById('selected-tile-viewer')
+        if (viewer) {
+            this.tileViewer = new DynamicElement(viewer)
+        }
 
     }
-
-}
-
-function fillTileMenu(caller: GridController, tileset: Tileset, target: string) {
-    console.log(`attempting over ${tileset}`)
-    console.log(tileset._tiles)
-    tileset.forEachTile((tilename, tile) => {
-        let menu = document.getElementById(target)
-        let btn = document.createElement("button")
-        let label = document.createElement("div")
-        let img = document.createElement("img")
-        menu.appendChild(btn).id=`tile-selector-${tilename}`
-        let button = document.getElementById(`tile-selector-${tilename}`)
-        button.classList.add("controller-tile-selector-button")
-        button.appendChild(img).src = tile.path
-        button.addEventListener('mouseup', ()=>{
-            caller.actionManager.selectedTile = tilename
+    fillTileMenu(caller: GridController, tileset: Tileset, target: string) {
+        console.log(`attempting over ${tileset}`)
+        console.log(tileset._tiles)
+        tileset.forEachTile((tileName, tile) => {
+            let menu = document.getElementById(target)
+            let btn = document.createElement("button")
+            let label = document.createElement("div")
+            let img = document.createElement("img")
+            menu.appendChild(btn).id=`tile-selector-${tileName}`
+            let button = document.getElementById(`tile-selector-${tileName}`)
+            button.classList.add("controller-tile-selector-button")
+            button.appendChild(img).src = tile.path
+            button.addEventListener('mouseup', ()=>{
+                caller.actionManager.selectTile(tileName)
+            })
         })
-    })
+    }
+    selectTile() {
+        
+    }
 }
+
 /**
  * Returns "foo bar" from "foo_bar"
 */

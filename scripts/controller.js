@@ -4,6 +4,7 @@ import { GridSelector } from "./selector.js";
 import { Stack } from "./stack.js";
 import { Tileset } from "./tileset.js";
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js";
+import { DynamicElement } from "./dynamicElement.js";
 export class GridController {
     constructor(w, h, target = document.body, set) {
         this.workingGrid = new Grid(w, h);
@@ -93,6 +94,9 @@ export class ActionManager {
     }
     showBorders() {
         addClassToAllMembers('grid-cell', 'default-cell-border');
+    }
+    selectTile(tileName) {
+        this.selectedTile = tileName;
     }
 }
 class KeyboardManager {
@@ -241,25 +245,32 @@ class ZoomManager {
     }
 }
 class ControllerMenu {
-    constructor(frame) {
+    constructor(menu) {
+        this.menu = new DynamicElement(menu);
+        let viewer = document.getElementById('selected-tile-viewer');
+        if (viewer) {
+            this.tileViewer = new DynamicElement(viewer);
+        }
     }
-}
-function fillTileMenu(caller, tileset, target) {
-    console.log(`attempting over ${tileset}`);
-    console.log(tileset._tiles);
-    tileset.forEachTile((tilename, tile) => {
-        let menu = document.getElementById(target);
-        let btn = document.createElement("button");
-        let label = document.createElement("div");
-        let img = document.createElement("img");
-        menu.appendChild(btn).id = `tile-selector-${tilename}`;
-        let button = document.getElementById(`tile-selector-${tilename}`);
-        button.classList.add("controller-tile-selector-button");
-        button.appendChild(img).src = tile.path;
-        button.addEventListener('mouseup', () => {
-            caller.actionManager.selectedTile = tilename;
+    fillTileMenu(caller, tileset, target) {
+        console.log(`attempting over ${tileset}`);
+        console.log(tileset._tiles);
+        tileset.forEachTile((tileName, tile) => {
+            let menu = document.getElementById(target);
+            let btn = document.createElement("button");
+            let label = document.createElement("div");
+            let img = document.createElement("img");
+            menu.appendChild(btn).id = `tile-selector-${tileName}`;
+            let button = document.getElementById(`tile-selector-${tileName}`);
+            button.classList.add("controller-tile-selector-button");
+            button.appendChild(img).src = tile.path;
+            button.addEventListener('mouseup', () => {
+                caller.actionManager.selectTile(tileName);
+            });
         });
-    });
+    }
+    selectTile() {
+    }
 }
 /**
  * Returns "foo bar" from "foo_bar"

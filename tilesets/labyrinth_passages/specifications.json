@@ -1,7 +1,5 @@
-
-
 {
-    "name": "Labyrinth Passageway Tiles",
+    "name": "Labyrinth Passageways",
     "rotation_groups": [
         {
             "name": "corner",
