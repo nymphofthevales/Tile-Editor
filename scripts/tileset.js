@@ -27,11 +27,12 @@ export class Tileset {
     * @param callback
     */
     forEachTile(callback) {
-        let tiles = Object.keys(this._tiles);
+        let tiles = Array.from(this._tiles.keys());
+        console.log(tiles);
         console.log('ran');
         for (let i = 0; i < tiles.length; i++) {
             let tilename = tiles[i];
-            callback(tilename, this._tiles[tilename]);
+            callback(tilename, this._tiles.get(tilename));
         }
     }
     construct() {

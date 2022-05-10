@@ -16,6 +16,8 @@ export class GridController {
         this.keyboardManager = new KeyboardManager(this.actionManager);
         this.mouseManager = new MouseManager(this.actionManager);
         this.actionManager.mouseManager = this.mouseManager;
+        let menu = document.getElementById("controller-menu");
+        this.controllerMenu = new ControllerMenu(menu);
     }
     start() {
         this.render();
@@ -26,7 +28,7 @@ export class GridController {
     render() {
         this.workingRenderer.dynamicRender(this.workingGrid, this.workingSelector);
         setTimeout(() => {
-            // TODO this.  fillTileMenu(this, this.workingRenderer.tileset,"tile-selector-frame")
+            this.controllerMenu.fillTileMenu(this, this.workingRenderer.tileset, "tile-selector-frame");
             this.workingRenderer.renderTileset(this.workingGrid);
         }, 500);
     }
@@ -255,16 +257,14 @@ class ControllerMenu {
     constructor(menu) {
         this.menu = new DynamicElement(menu);
         let viewer = document.getElementById('selected-tile-viewer');
-        if (viewer)
+        if (viewer) {
             this.tileViewer = new DynamicElement(viewer);
+        }
     }
     fillTileMenu(caller, tileset, target) {
-        console.log(`attempting over ${tileset}`);
-        console.log(tileset._tiles);
         tileset.forEachTile((tileName, tile) => {
             let menu = document.getElementById(target);
             let btn = document.createElement("button");
-            let label = document.createElement("div");
             let img = document.createElement("img");
             menu.appendChild(btn).id = `tile-selector-${tileName}`;
             let button = document.getElementById(`tile-selector-${tileName}`);
