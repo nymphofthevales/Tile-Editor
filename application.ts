@@ -39,10 +39,8 @@ document.getElementById("MENU-NEW").addEventListener('mouseup', ()=>{
 
 import { Tileset } from "./scripts/tileset.js"
 import { RotationGroup } from "./scripts/RotationGroup.js"
-let labyrinthTiles = new Tileset("./tilesets/labyrinth_passages")
-let untitledTileset = new Tileset("./tilesets/labyrinth_nodes")
+let labyrinthTiles = new Tileset("./tilesets/labyrinth")
 console.log(labyrinthTiles)
-console.log(untitledTileset)
 
 document.getElementById("CTRL-NAV-QUIT").addEventListener('mouseup', ()=>{
     controller.export()

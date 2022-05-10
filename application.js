@@ -33,10 +33,8 @@ document.getElementById("MENU-NEW").addEventListener('mouseup', () => {
     setupForm.show();
 });
 import { Tileset } from "./scripts/tileset.js";
-let labyrinthTiles = new Tileset("./tilesets/labyrinth_passages");
-let untitledTileset = new Tileset("./tilesets/labyrinth_nodes");
+let labyrinthTiles = new Tileset("./tilesets/labyrinth");
 console.log(labyrinthTiles);
-console.log(untitledTileset);
 document.getElementById("CTRL-NAV-QUIT").addEventListener('mouseup', () => {
     controller.export();
 });

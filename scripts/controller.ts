@@ -3,10 +3,10 @@ import { Grid, writeGridToPreset } from "./grid.js"
 import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
-import { Direction } from "./direction.js"
+import { Direction, RotationDirection2D } from "./direction.js"
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
 import { DynamicElement } from "./dynamicElement.js"
-import { threadId } from "worker_threads"
+import { RotationGroup } from "./RotationGroup.js"
 const fs = require("fs")
 
 export class GridController {
@@ -17,6 +17,7 @@ export class GridController {
     actionManager: ActionManager
     keyboardManager: KeyboardManager
     mouseManager: MouseManager
+    zoomManager: ZoomManager
 
     controllerMenu: ControllerMenu
 
@@ -30,13 +31,13 @@ export class GridController {
         this.workingRenderer = new GridRenderer(target, tileset)
         this.ident = this.workingRenderer.identifier
 
-        this.actionManager = new ActionManager(this.workingGrid, this.workingSelector, this.workingRenderer, this.ident)
-        this.keyboardManager = new KeyboardManager(this.actionManager)
-        this.mouseManager = new MouseManager(this.actionManager)
-        this.actionManager.mouseManager = this.mouseManager
+        this.actionManager = new ActionManager(this)
+        this.keyboardManager = new KeyboardManager(this)
+        this.mouseManager = new MouseManager(this)
+        this.zoomManager = new ZoomManager()
 
         let menu = document.getElementById("controller-menu")
-        this.controllerMenu = new ControllerMenu(menu)
+        this.controllerMenu = new ControllerMenu(menu, this)
     }
     start() {
         this.render()
@@ -47,7 +48,7 @@ export class GridController {
     render() {
         this.workingRenderer.dynamicRender(this.workingGrid, this.workingSelector)
         setTimeout(() => {
-            this.controllerMenu.fillTileMenu(this, this.workingRenderer.tileset,"tile-selector-frame")
+            this.controllerMenu.fillTileMenu(this.workingRenderer.tileset,"tile-selector-frame")
             this.workingRenderer.renderTileset(this.workingGrid)
         }, 500)
     }
@@ -68,28 +69,26 @@ export class GridController {
 }
 
 export class ActionManager {
-    grid: Grid
-    selector: GridSelector
-    renderer: GridRenderer
-    zoomManager: ZoomManager
-    mouseManager: MouseManager
-    ident: string
+    parentController: GridController
 
     currentActionMode: Function
-    selectedTile: string
+    selectedTile: Tile
     expansionAmount: number
-    constructor(grid, selector, renderer, ident) {
-        this.grid = grid
-        this.selector = selector
-        this.renderer = renderer
-        this.ident = ident
-
+    constructor(parentController: GridController) {
+        this.parentController = parentController
         this.currentActionMode = this.draw_tiles
-        this.selectedTile = "none"
+        this.selectedTile = this.tileset.get("none")
         this.expansionAmount = 5
-
         this.setupExpansionListeners()
     }
+    get ident() {return this.parentController.ident}
+    get tileset() {return this.parentController.workingRenderer.tileset}
+    get grid() {return this.parentController.workingGrid}
+    get selector() {return this.parentController.workingSelector}
+    get renderer() {return this.parentController.workingRenderer}
+    get zoomManager() {return this.parentController.zoomManager}
+    get mouseManager() {return this.parentController.mouseManager}
+    get controllerMenu() {return this.parentController.controllerMenu}
     select_deselect([x,y]): void {
         let selector = this.selector
         if (selector.selection.hasCell([x,y])) {
@@ -100,7 +99,7 @@ export class ActionManager {
     }
     draw_tiles([x,y]): void {
         let cell = this.grid.cell([x,y])
-        cell.data[`tile`] = this.selectedTile
+        cell.data[`tile`] = this.selectedTile.name
         console.log(cell)
         this.renderer.renderTile(cell)
     }
@@ -143,26 +142,34 @@ export class ActionManager {
     showBorders() {
         addClassToAllMembers('grid-cell', 'default-cell-border')
     }
-    selectTile(tileName: string): void {
-        this.selectedTile = tileName
-        //this.controllerMenu
+    /**
+     * For tile to appear as selected in menu, this should be called through {@link ControllerMenu.selectTile()}
+    */
+    selectTile(tile: Tile): void {
+        this.selectedTile = tile
     }
 }
 
 
 class KeyboardManager  {
-    zoomManager: ZoomManager
-    actionManager: ActionManager
-    constructor(actionManager) {
-        this.actionManager = actionManager
-        this.zoomManager = new ZoomManager()
-        actionManager.zoomManager = this.zoomManager;
+    parentController: GridController
+    constructor(parentController: GridController) {
+        this.parentController = parentController
     }
+    get ident() {return this.parentController.ident}
+    get zoomManager() {return this.parentController.zoomManager}
+    get controllerMenu() {return this.parentController.controllerMenu}
     zoomIn() {
         this.zoomManager.zoomIn()
     }
     zoomOut() {
         this.zoomManager.zoomOut()
+    }
+    rotateTileCCW() {
+        this.controllerMenu.rotateSelectedTile('counterclockwise')
+    }
+    rotateTileCW() {
+        this.controllerMenu.rotateSelectedTile('clockwise')
     }
     setupListeners() {
         window.addEventListener('keyup', (event) => {
@@ -176,6 +183,11 @@ class KeyboardManager  {
                     case '_':
                         this.zoomOut()
                         break;
+                    case 'z':
+                        this.rotateTileCCW()
+                        break;
+                    case 'x':
+                        this.rotateTileCW()
                 }
         })
     }
@@ -183,14 +195,16 @@ class KeyboardManager  {
 
 class MouseManager{
     mousePosition: Stack
-    actionManager: ActionManager
-    ident: string
-    constructor(actionManager: ActionManager) {
+    parentController: GridController
+
+    constructor(parentController: GridController) {
         this.mousePosition = new Stack()
         this.mousePosition["listening"] = false
-        this.actionManager = actionManager
-        this.ident = this.actionManager.ident
+        this.parentController = parentController
     }
+    get ident() {return this.parentController.ident}
+    get actionManager() {return this.parentController.actionManager}
+    get keyboardManager() {return this.parentController.keyboardManager}
     click() {
         console.log(this.mousePosition._stack)
         let [x,y] = this.mousePosition.latest
@@ -307,30 +321,76 @@ class ZoomManager {
 class ControllerMenu {
     menu: DynamicElement
     tileViewer: DynamicElement
+    parentController: GridController
 
-    constructor(menu: HTMLElement) {
+    constructor(menu: HTMLElement, parentController: GridController) {
         this.menu = new DynamicElement(menu)
+        this.parentController = parentController
         let viewer = document.getElementById('selected-tile-viewer')
         if (viewer) {
             this.tileViewer = new DynamicElement(viewer)
         }
     }
-    fillTileMenu(caller: GridController, tileset: Tileset, target: string) {
-        tileset.forEachTile((tileName, tile) => {
-            let menu = document.getElementById(target)
-            let btn = document.createElement("button")
-            let img = document.createElement("img")
-            menu.appendChild(btn).id=`tile-selector-${tileName}`
-            let button = document.getElementById(`tile-selector-${tileName}`)
-            button.classList.add("controller-tile-selector-button")
-            button.appendChild(img).src = tile.path
-            button.addEventListener('mouseup', ()=>{
-                caller.actionManager.selectTile(tileName)
-            })
+    get renderer() {return this.parentController.workingRenderer}
+    get tileset() {return this.parentController.workingRenderer.tileset}
+    get mouseManager() {return this.parentController.mouseManager}
+    get actionManager() {return this.parentController.actionManager}
+    get keyboardManager() {return this.parentController.keyboardManager}
+    fillTileMenu(tileset: Tileset, target: string) {
+        let controllerMenu = this
+        let buttonsPlaced = []
+        tileset.forEachTile((tileName: string, tile: Tile, buttonsPlaced) => {
+            let buttonPlaced = false;
+            if (!buttonsPlaced.includes(tileName)) {
+                if (tile.rotationGroup == undefined) {
+                    controllerMenu.createTileSelectorButton(tileName, tile, target)
+                    buttonPlaced = true;
+                } else {
+                    let rotationGroup = tileset.rotationGroups.get(tile.rotationGroup)
+                    console.log(tile.rotationGroup)
+                    tile = this.getRepresentativeTile(rotationGroup)
+                    tileName = tile.name
+                    if (!buttonsPlaced.includes(tileName)) {
+                        controllerMenu.createTileSelectorButton(tileName, tile, target)
+                        buttonPlaced = true;
+                    }
+                }
+            }
+            if (buttonPlaced) {
+                buttonsPlaced.push(tileName)
+            }
+            console.log(buttonsPlaced)
+            return buttonsPlaced
+        }, buttonsPlaced)
+    }
+    getRepresentativeTile(rotationGroup: RotationGroup): Tile {
+        let tilesInGroup = Array.from(rotationGroup.clockwise.keys())
+        return tilesInGroup[0]
+    }
+    createTileSelectorButton(tileName, tile, target) {
+        let menu = document.getElementById(target)
+        let btn = document.createElement("button")
+        let img = document.createElement("img")
+        let controllerMenu = this
+        menu.appendChild(btn).id=`tile-selector-${tileName}`
+        let button = document.getElementById(`tile-selector-${tileName}`)
+        button.classList.add("tile-selector-button")
+        button.appendChild(img).src = tile.path
+        button.addEventListener('mouseup', ()=>{
+            controllerMenu.selectTile(tile)
         })
     }
-    selectTile() {
-        
+    /**
+     * Selects a tile to be worked with and displays it as such.
+    */
+    selectTile(tile: Tile): void {
+        this.tileViewer.background = tile.path
+        this.actionManager.selectTile(tile)
+    }
+    rotateSelectedTile(direction: RotationDirection2D): void {
+        let selectedTile = this.actionManager.selectedTile
+        let rotation = this.tileset.rotate(selectedTile, direction)
+        this.selectTile(rotation)
     }
 }
 

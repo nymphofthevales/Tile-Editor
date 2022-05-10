@@ -64,6 +64,7 @@ export class GridRenderer {
     }
     /**
      * Clears all cells from DOM, then recreates them, thereby removing any linked event listeners.
+     * NOTE: will run into errors here with the loading of selections, and event listeners on the rows instead of tiles.
     */
     redoRender(grid: Grid): void {
         forEachInClass('grid-row', (element)=>{

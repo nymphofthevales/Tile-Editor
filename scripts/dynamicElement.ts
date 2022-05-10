@@ -12,6 +12,9 @@ export class DynamicElement {
     clear() {
         this.reference.innerHTML = ""
     }
+    /**
+     * Sets the background of an element. Automatically includes css url() wrapper.
+    */
     set background(imageUrl: string) {
         this.reference.style.backgroundImage = `url(\'${imageUrl}\')`
     }

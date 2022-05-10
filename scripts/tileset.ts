@@ -29,16 +29,17 @@ export class Tileset {
     /**
      * Runs a callback function over every tile in the set.
      * callback gains access to each tile's name, and its Tile instance.
-     * @example callback(tilename: string, this.tiles[tilename]: Tile)
+     * @example callback(tilename: string, this._tiles.get(tilename): Tile)
     * @param callback 
     */
-    forEachTile(callback: Function): void {
-        let tiles = Array.from(this._tiles.keys())
-        console.log(tiles)
-        console.log('ran')
-        for (let i=0; i < tiles.length; i++) {
-            let tilename = tiles[i]
-            callback(tilename, this._tiles.get(tilename))
+    forEachTile(callback: Function, returnVariable: any): void | any {
+        let tileNames = Array.from(this._tiles.keys())
+        for (let i=0; i < tileNames.length; i++) {
+            let tilename = tileNames[i]
+            callback(tilename, this._tiles.get(tilename), returnVariable)
+        }
+        if (returnVariable != undefined) {
+            return returnVariable
         }
     }
     construct(): void {
@@ -70,6 +71,9 @@ export class Tileset {
             }
         })
     }
+    /**
+     * 
+    */
     setupRotationGroup(tileNames: Array<string>, groupName: string): void {
         let tiles = this.getMultiple(tileNames)
         for (let i=0; i < tiles.length; i++) {
@@ -97,6 +101,6 @@ export class Tile {
     constructor(filePath) {
         this.path = filePath
         this.name = extractFilename(filePath)
-        this.rotationGroup = '';
+        this.rotationGroup = undefined;
     }
 }

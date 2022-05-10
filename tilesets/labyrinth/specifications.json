@@ -1,0 +1,33 @@
+{
+    "name": "Labyrinth Passageways",
+    "rotation_groups": [
+        {
+            "name": "corner",
+            "group": ["dr","ld","lu","ur"]
+        },
+        {
+            "name": "t_intersection",
+            "group": ["ldr","lud","lur","udr"]
+        },
+        {
+            "name": "straight",
+            "group": ["lr", "ud"]
+        },
+        {
+            "name": "node_corner",
+            "group": ["node_dr","node_ld","node_lu","node_ur"]
+        },
+        {
+            "name": "node_t_intersection",
+            "group": ["node_ldr","node_lud","node_lur","node_udr"]
+        },
+        {
+            "name": "node_straight",
+            "group": ["node_lr","node_ud"]
+        },
+        {
+            "name": "node_cap",
+            "group": ["node_d","node_l","node_u","node_r"]
+        }
+    ]
+}

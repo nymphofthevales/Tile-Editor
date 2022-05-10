@@ -359,24 +359,30 @@ input[type="text"], input[type="number"], input[type="text"]  {
     margin: 10px;
 }
 
-.controller-tile-selector-frame {
+#tile-selector-frame {
     width: 100%;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-evenly;
 }
-
-.controller-tile-selector-button {
+.tile-selector-button {
     margin: 10px;
     position: relative;
     background-color: black;
 }
-
-.controller-tile-selector-button img{
+.tile-selector-button img{
     height: 50px;
     width: 50px;
     image-rendering: pixelated;
+}
+#selected-tile-viewer {
+    margin: 10px auto;
+    height: 100px;
+    width: 100px;
+    image-rendering: pixelated;
+    background-repeat:no-repeat;
+    background-size: cover;
 }
 
 #CTRL-MENU-TOGGLE {
