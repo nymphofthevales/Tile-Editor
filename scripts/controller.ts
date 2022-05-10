@@ -41,9 +41,15 @@ export class GridController {
     render() {
         this.workingRenderer.dynamicRender(this.workingGrid, this.workingSelector)
         setTimeout(() => {
-            fillTileMenu(this, this.workingRenderer.tileset,"tile-selector-frame")
+            // TODO this.  fillTileMenu(this, this.workingRenderer.tileset,"tile-selector-frame")
             this.workingRenderer.renderTileset(this.workingGrid)
         }, 500)
+    }
+    export() {
+        this.workingGrid.cropGrid((cellData)=>{
+            return cellData.tileName == "none"
+        })
+        this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
     }
 }
 
@@ -125,7 +131,7 @@ export class ActionManager {
     }
     selectTile(tileName: string): void {
         this.selectedTile = tileName
-        
+        //this.controllerMenu
     }
 }
 
@@ -291,9 +297,8 @@ class ControllerMenu {
     constructor(menu: HTMLElement) {
         this.menu = new DynamicElement(menu)
         let viewer = document.getElementById('selected-tile-viewer')
-        if (viewer) {
-            this.tileViewer = new DynamicElement(viewer)
-        }
+        if (viewer) this.tileViewer = new DynamicElement(viewer)
+        
 
     }
     fillTileMenu(caller: GridController, tileset: Tileset, target: string) {

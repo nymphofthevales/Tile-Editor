@@ -43,3 +43,5 @@ let labyrinthTiles = new Tileset("./tilesets/labyrinth_passages")
 let untitledTileset = new Tileset("./tilesets/labyrinth_nodes")
 console.log(labyrinthTiles)
 console.log(untitledTileset)
+
+
