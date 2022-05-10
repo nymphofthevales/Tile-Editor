@@ -5,6 +5,7 @@ import { getUniqueIdentifier } from "./numerical_helpers.js"
 import { Grid, Row, Cell, generateGridFromPreset, GridPreset } from "./grid.js"
 import { GridSelector } from "./selector.js"
 import { Tileset } from "./tileset.js"
+import { forEachInClass } from "./dom_helpers.js"
 
 /**
  * Sets up a renderer for a grid, 
@@ -60,6 +61,16 @@ export class GridRenderer {
     dynamicRender(grid: Grid, gridSelector: GridSelector) {
         this.resolveData_DocumentDeltas(grid)
         this.renderSelection(gridSelector)
+    }
+    /**
+     * Clears all cells from DOM, then recreates them, thereby removing any linked event listeners.
+    */
+    redoRender(grid: Grid): void {
+        forEachInClass('grid-row', (element)=>{
+            element.innerHTML = ''
+        })
+        this.resolveData_DocumentDeltas(grid)
+        this.renderTileset(grid)
     }
     /**
      * Ensures only cells contained in the selector are rendered as selected.

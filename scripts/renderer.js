@@ -2,6 +2,7 @@ import { PerpendicularDirections } from "./direction.js";
 import { getUniqueIdentifier } from "./numerical_helpers.js";
 import { generateGridFromPreset } from "./grid.js";
 import { GridSelector } from "./selector.js";
+import { forEachInClass } from "./dom_helpers.js";
 /**
  * Sets up a renderer for a grid,
  * capable of creating or modifying html elements on the fly to reflect changes in the data.
@@ -52,6 +53,16 @@ export class GridRenderer {
     dynamicRender(grid, gridSelector) {
         this.resolveData_DocumentDeltas(grid);
         this.renderSelection(gridSelector);
+    }
+    /**
+     * Clears all cells from DOM, then recreates them, thereby removing any linked event listeners.
+    */
+    redoRender(grid) {
+        forEachInClass('grid-row', (element) => {
+            element.innerHTML = '';
+        });
+        this.resolveData_DocumentDeltas(grid);
+        this.renderTileset(grid);
     }
     /**
      * Ensures only cells contained in the selector are rendered as selected.

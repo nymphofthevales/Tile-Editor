@@ -6,6 +6,7 @@ import { Tileset, Tile } from "./tileset.js"
 import { Direction } from "./direction.js"
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
 import { DynamicElement } from "./dynamicElement.js"
+import { threadId } from "worker_threads"
 const fs = require("fs")
 
 export class GridController {
@@ -62,6 +63,7 @@ export class GridController {
         }
         let path = `./tiledMap_${this.ident}.json`
         fs.writeFileSync(path, JSON.stringify(save))
+        this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
     }
 }
 
@@ -131,7 +133,7 @@ export class ActionManager {
                 this.grid.increaseWidth(this.expansionAmount, direction)
                 break;
         }
-        this.renderer.resolveData_DocumentDeltas(this.grid)
+        this.renderer.redoRender(this.grid)
         this.zoomManager.setZoom('grid-cell')
         this.mouseManager.setupListeners()
     }

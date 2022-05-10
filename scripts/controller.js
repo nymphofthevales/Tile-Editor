@@ -45,6 +45,7 @@ export class GridController {
         };
         let path = `./tiledMap_${this.ident}.json`;
         fs.writeFileSync(path, JSON.stringify(save));
+        this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid);
     }
 }
 export class ActionManager {
@@ -101,7 +102,7 @@ export class ActionManager {
                 this.grid.increaseWidth(this.expansionAmount, direction);
                 break;
         }
-        this.renderer.resolveData_DocumentDeltas(this.grid);
+        this.renderer.redoRender(this.grid);
         this.zoomManager.setZoom('grid-cell');
         this.mouseManager.setupListeners();
     }
