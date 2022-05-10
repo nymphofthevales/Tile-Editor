@@ -5,6 +5,7 @@ import { Direction, AdjacentDirection, QuantizedAngle, Directions, Perpendicular
 export interface GridPreset {
     width: number,
     height: number,
+    generate_from: Coordinate
     cells: Array<{
         position: Coordinate,
         data: any
@@ -461,19 +462,19 @@ export class Grid {
         //console.log(`currentYAxis: ${JSON.stringify(this.CurrentYAxis)}`)
         let hasData = 0
         let index = this[direction]
-        let callback = (cell, grid, hasData) => {
+        let checkEmpty = (cell, grid, hasData) => {
             let isEmpty = dataEvaluator(cell.data)
             //console.log(`${isEmpty} ${grid.width} ${grid.height} ${hasData}`)
             if (!isEmpty) {
                 return hasData + 1
             }
-            return 0
+            return hasData
         }
         switch (direction) {
             case "top":
             case "bottom":
                 if (this.height > 1) {
-                    hasData = this.forEachCellInRow(index, callback, hasData)
+                    hasData = this.forEachCellInRow(index, checkEmpty, hasData)
                 } else {
                     hasData = 1
                 }
@@ -481,7 +482,7 @@ export class Grid {
             case "left":
             case "right":
                 if (this.width > 1) {
-                    hasData = this.forEachCellInColumn(index, callback, hasData)
+                    hasData = this.forEachCellInColumn(index, checkEmpty, hasData)
                 } else {
                     hasData = 1
                 }
@@ -504,6 +505,27 @@ export function generateGridFromPreset(preset: GridPreset): Grid {
     })
     return presetGrid
 }
+export function writeGridToPreset(grid: Grid, dataEvaluator: Function = (data) => {return Object.keys(data).length == 0}): GridPreset {
+    let preset = {
+        width: grid.width,
+        height: grid.height,
+        generate_from: grid.row(grid.bottom).column(grid.left).XYCoordinate,
+        cells: []
+    }
+    grid.forEachCell((cell, grid, preset)=>{
+        let isEmpty = dataEvaluator(cell.data)
+        if (!isEmpty) {
+            let cellPreset = {
+                position: cell.XYCoordinate,
+                data: cell.data
+            }
+            preset.cells.push(cellPreset)
+        }
+        return preset
+    }, preset)
+    return preset
+}
+
 
 let preset = {
     "width": 0,

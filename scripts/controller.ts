@@ -1,12 +1,12 @@
 import { GridRenderer, getCellReference } from "./renderer.js"
-import { Grid } from "./grid.js"
+import { Grid, writeGridToPreset } from "./grid.js"
 import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
 import { Direction } from "./direction.js"
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
 import { DynamicElement } from "./dynamicElement.js"
-
+const fs = require("fs")
 
 export class GridController {
     workingGrid: Grid
@@ -51,10 +51,17 @@ export class GridController {
         }, 500)
     }
     export() {
-        this.workingGrid.cropGrid((cellData)=>{
-            return cellData.tileName == "none"
-        })
-        this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
+        let emptyTileEvaluator = (cellData)=>{
+            return cellData.tile == "none" || cellData.tile == undefined
+        }
+        this.workingGrid.cropGrid(emptyTileEvaluator)
+        let savedGrid = writeGridToPreset(this.workingGrid, emptyTileEvaluator)
+        let save = {
+            tileset: this.workingRenderer.tileset._path,
+            grid: savedGrid
+        }
+        let path = `./tiledMap_${this.ident}.json`
+        fs.writeFileSync(path, JSON.stringify(save))
     }
 }
 
@@ -91,7 +98,7 @@ export class ActionManager {
     }
     draw_tiles([x,y]): void {
         let cell = this.grid.cell([x,y])
-        cell.data.tile = this.selectedTile
+        cell.data[`tile`] = this.selectedTile
         console.log(cell)
         this.renderer.renderTile(cell)
     }
@@ -337,3 +344,5 @@ function splitFilename(filename) {
     }
     return x
 }
+
+

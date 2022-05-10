@@ -8,6 +8,9 @@ export class DynamicElement {
     show() {
         this.reference.classList.remove("hidden");
     }
+    clear() {
+        this.reference.innerHTML = "";
+    }
     set background(imageUrl) {
         this.reference.style.backgroundImage = `url(\'${imageUrl}\')`;
     }
