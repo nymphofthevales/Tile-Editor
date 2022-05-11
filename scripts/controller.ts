@@ -62,7 +62,7 @@ export class GridController {
             tileset: this.workingRenderer.tileset._path,
             grid: savedGrid
         }
-        let path = `./tiledMap_${this.ident}.json`
+        let path = `./saves/tiledMap_${this.ident}.json`
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
     }
