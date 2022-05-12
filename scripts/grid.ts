@@ -1,16 +1,7 @@
 import { Coordinate, CoordinateAxis, generateCoordinateAxis, readPositionDelta } from "./coordinate.js"
 import { parseMapKeysToArray, concatenateMaps, insertElementInMap } from "./map_helpers.js"
 import { Direction, AdjacentDirection, QuantizedAngle, Directions, PerpendicularDirections } from "./direction.js"
-
-export interface GridPreset {
-    width: number,
-    height: number,
-    generate_from: Coordinate
-    cells: Array<{
-        position: Coordinate,
-        data: any
-    }>
-}
+const fs = require('fs')
 
 interface CellData {
     [key: string]: any
@@ -69,7 +60,7 @@ export class Row {
         this.parentGrid = parentGrid
         this.verticalPosition = verticalPosition;
         if (fillCells === true) {
-            this.fillColumns(width,verticalPosition)
+            this.fillColumns(width,verticalPosition, from)
         }
     }
     get width(): number {
@@ -187,6 +178,12 @@ export class Row {
     }
 }
 
+
+interface GridOptions {
+    fillRows?: boolean, 
+    fillCells?: boolean,
+    generateFrom?: Coordinate,
+}
 /**
  * Sets up a data structure to represent a two-dimensional plane with Rows of Cells. 
  * Rows lie along the Y-axis and are able to be indexed by positive and negative coordinates.
@@ -202,15 +199,15 @@ export class Row {
  */
 export class Grid {
     rows: Map<number,Row> = new Map();
-    constructor(width: number = 1, height: number = 1,  opts?: {
-        fillRows?: boolean, 
-        fillCells?: boolean
-    }) {
+    constructor(width: number = 1, height: number = 1,  opts?: GridOptions) {
         let fillRows = opts?.fillRows? opts.fillRows : true
         let fillCells = opts?.fillCells? opts.fillCells : true
-        let YAxis = generateCoordinateAxis(height)
+        let generateFrom = opts?.generateFrom? opts.generateFrom : undefined
+        let generateFromX = generateFrom? generateFrom[0] : undefined
+        let generateFromY = generateFrom? generateFrom[1] : undefined
+        let YAxis = generateCoordinateAxis(height, generateFromY)
         if (fillRows) {
-            this.fillRows(width, YAxis, fillCells)
+            this.fillRows(width, YAxis, fillCells, generateFromX)
         }
     }
     /**
@@ -363,9 +360,9 @@ export class Grid {
      * @see Row
      * @see Row.fillColumns
      */
-    fillRows(width: number,YAxis: CoordinateAxis, fillCells: boolean = true) {
+    fillRows(width: number, YAxis: CoordinateAxis, fillCells: boolean = true, generateFromX: number = undefined) {
         for (let i = 0; i < YAxis.length; i++) {
-            this.set( YAxis[i] , new Row(width,YAxis[i], this, fillCells) )
+            this.set( YAxis[i] , new Row(width,YAxis[i], this, fillCells, generateFromX) )
         }
     }
     /**
@@ -455,16 +452,13 @@ export class Grid {
      * Recursively removes rows and columns from the grid from each direction until it reaches a column or row that has data in at least one of the cells. 
      * @param dataEvaluator is a user-defined callback used to check whether a cell's data can be considered empty. Should return true if the cell data passed to it is empty and the cell should be removed, and false if the cell should be kept.
      * @param direction is used for recursive functionality and should not be set.
-     * @param done is an iteration counter for recursion and should not be set.
+     * @param iterations is an iteration counter for recursion and should not be set.
     */
     cropGrid(dataEvaluator: Function = (data) => {return Object.keys(data).length == 0}, direction: Direction = "top", iterations: number = 1): void {
-        //console.log(`currentXAxis: ${JSON.stringify(this.CurrentXAxis)}`)
-        //console.log(`currentYAxis: ${JSON.stringify(this.CurrentYAxis)}`)
         let hasData = 0
         let index = this[direction]
         let checkEmpty = (cell, grid, hasData) => {
             let isEmpty = dataEvaluator(cell.data)
-            //console.log(`${isEmpty} ${grid.width} ${grid.height} ${hasData}`)
             if (!isEmpty) {
                 return hasData + 1
             }
@@ -492,60 +486,7 @@ export class Grid {
             this.reduceSize(1, direction)
             this.cropGrid(dataEvaluator, direction, iterations)
         } else if (PerpendicularDirections[iterations] != undefined) {
-            //console.log(PerpendicularDirections[iterations])
             this.cropGrid(dataEvaluator, PerpendicularDirections[iterations], iterations + 1)
         }
     }
-}
-
-export function generateGridFromPreset(preset: GridPreset): Grid {
-    let presetGrid = new Grid(preset.width, preset.height)
-    preset.cells.forEach((presetCell, index, array) => {
-        presetGrid.cell(presetCell.position).data = presetCell.data
-    })
-    return presetGrid
-}
-export function writeGridToPreset(grid: Grid, dataEvaluator: Function = (data) => {return Object.keys(data).length == 0}): GridPreset {
-    let preset = {
-        width: grid.width,
-        height: grid.height,
-        generate_from: grid.row(grid.bottom).column(grid.left).XYCoordinate,
-        cells: []
-    }
-    grid.forEachCell((cell, grid, preset)=>{
-        let isEmpty = dataEvaluator(cell.data)
-        if (!isEmpty) {
-            let cellPreset = {
-                position: cell.XYCoordinate,
-                data: cell.data
-            }
-            preset.cells.push(cellPreset)
-        }
-        return preset
-    }, preset)
-    return preset
-}
-
-
-let preset = {
-    "width": 0,
-    "height": 0,
-    "cells": [
-        {
-            "position": [0,0],
-            "data": {
-                "direction": "left-up-down-right",
-                "type": "tile"
-            }
-        },
-        {
-            "position": [1,1],
-            "data": {
-                "direction": "left-right",
-                "type": "node",
-                "unlocked": true,
-                "pageObjects": ["castRunes", "readRunes"]
-            }
-        },
-    ]
 }

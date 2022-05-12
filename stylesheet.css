@@ -409,24 +409,24 @@ input[type="text"], input[type="number"], input[type="text"]  {
     width: 25vw;
 }
 
-#NEWMAP-FORM > label {
+.start-form > label {
     display: block;
 }
 
-#NEWMAP-FORM, #map-setup-popup h2 {
+.start-form, #map-setup-popup h2, #map-load-popup h2 {
     color: white;
     margin: 20px;
 }
 
-#NEWMAP-FORM > *{
+.start-form > *{
     margin: 10px;
     padding: 3px;
 }
 
-#NEWMAP-FORM > button {
+.start-form > button {
     width: 40%
 }
 
-#NEWMAP-FORM select {
+.start-form select {
     color: black;
 }

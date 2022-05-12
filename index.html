@@ -58,7 +58,7 @@
                     <label for="NEWMAP-FORM">
                         <h2>New map settings</h2>
                     </label>
-                    <form action="javascript:void(0);" id="NEWMAP-FORM" name="newmap-form" class="outlined vert-flex">
+                    <form action="javascript:void(0);" id="NEWMAP-FORM" name="newmap-form" class="outlined vert-flex start-form">
                         <label for="NEWMAP-WIDTH" class="setup-form-label">Width</label>
                         <input type="number" value="10" name="NEWMAP-WIDTH" id="NEWMAP-WIDTH">
 
@@ -74,6 +74,24 @@
                         <div class="horz-flex">
                             <button id="NEWMAP-SUBMIT">Make</button>
                             <button id="NEWMAP-CLOSE">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="map-load-frame" class="opaque fill-screen hidden">
+                <div id="map-load-popup" class="opaque center outlined">
+                    <label for="LOADMAP-FORM">
+                        <h2>Load an existing map</h2>
+                    </label>
+                    <form action="javascript:void(0);" id="LOADMAP-FORM" name="loadmap-form" class="outlined vert-flex start-form">
+                        <label for="LOADMAP-SELECTOR" class="loadmap-form-label">Map:</label>
+                        <select name="LOADMAP-SELECTOR" id="LOADMAP-SELECTOR">
+                            <option value="dynamo" name="dynamo" selected>Dynamo</option>
+                        </select>
+                        
+                        <div class="horz-flex">
+                            <button id="LOADMAP-SUBMIT">Load</button>
+                            <button id="LOADMAP-CLOSE">Cancel</button>
                         </div>
                     </form>
                 </div>

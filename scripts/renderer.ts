@@ -2,7 +2,7 @@
 import { Direction, AdjacentDirection, Directions, PerpendicularDirections } from "./direction.js"
 import { Coordinate, CoordinateAxis } from "./coordinate.js"
 import { getUniqueIdentifier } from "./numerical_helpers.js"
-import { Grid, Row, Cell, generateGridFromPreset, GridPreset } from "./grid.js"
+import { Grid, Row, Cell } from "./grid.js"
 import { GridSelector } from "./selector.js"
 import { Tileset } from "./tileset.js"
 import { forEachInClass } from "./dom_helpers.js"
@@ -40,20 +40,6 @@ export class GridRenderer {
             this.frame = document.getElementById('Grid_Renderer_Frame_' + this.identifier)
             this.frame.classList.add('grid-renderer-frame')
         }
-    }
-    /**
-     * @TODO
-     * @see {@link staticRender}
-    */
-    staticRenderPreset(preset: GridPreset) {
-        let grid = generateGridFromPreset(preset)
-        this.staticRender(grid)
-    }
-    /**
-     * Creates a renderer without a selection box on it, for the user to look at but not interact with.
-    */
-    staticRender(grid: Grid) {
-
     }
     /**
      * Builds a DOM grid from the Grid with full selection functionality.

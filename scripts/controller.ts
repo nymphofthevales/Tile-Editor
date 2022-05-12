@@ -1,5 +1,6 @@
 import { GridRenderer, getCellReference } from "./renderer.js"
-import { Grid, writeGridToPreset } from "./grid.js"
+import { Grid } from "./grid.js"
+import { GridIOManager, GridPreset } from "./gridio.js" 
 import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
 import { Tileset, Tile } from "./tileset.js"
@@ -7,6 +8,7 @@ import { Direction, RotationDirection2D } from "./direction.js"
 import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from "./dom_helpers.js"
 import { DynamicElement } from "./dynamicElement.js"
 import { RotationGroup } from "./RotationGroup.js"
+import { extractDirectory } from "./file_helpers.js"
 const fs = require("fs")
 
 export class GridController {
@@ -20,14 +22,20 @@ export class GridController {
     zoomManager: ZoomManager
 
     controllerMenu: ControllerMenu
+    IOManager: GridIOManager
 
     ident: string
     
-    constructor(w, h, target: HTMLElement = document.body, set: string) {
-        this.workingGrid = new Grid(w,h)
+    constructor(w, h, target: HTMLElement = document.body, tilesetName: string, preset?: GridPreset) {
+        this.IOManager = new GridIOManager()
+        if (preset) {
+            this.workingGrid = this.IOManager.generateGridFromPreset(preset)
+        } else {
+            this.workingGrid = new Grid(w,h)
+        }
         this.workingSelector = new GridSelector(this.workingGrid)
 
-        let tileset = new Tileset(`./tilesets/${set}`)
+        let tileset = new Tileset(`./tilesets/${tilesetName}`)
         this.workingRenderer = new GridRenderer(target, tileset)
         this.ident = this.workingRenderer.identifier
 
@@ -53,18 +61,19 @@ export class GridController {
         }, 500)
     }
     export() {
-        let emptyTileEvaluator = (cellData)=>{
-            return cellData.tile == "none" || cellData.tile == undefined
-        }
+        let emptyTileEvaluator = (cellData)=>{return cellData.tile == "none" || cellData.tile == undefined}
         this.workingGrid.cropGrid(emptyTileEvaluator)
-        let savedGrid = writeGridToPreset(this.workingGrid, emptyTileEvaluator)
+        let savedGrid = this.IOManager.writeGridToPreset(this.workingGrid, emptyTileEvaluator)
         let save = {
-            tileset: this.workingRenderer.tileset._path,
+            tileset: extractDirectory(this.workingRenderer.tileset._path),
             grid: savedGrid
         }
         let path = `./saves/tiledMap_${this.ident}.json`
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
+    }
+    import() {
+
     }
 }
 
@@ -393,18 +402,3 @@ class ControllerMenu {
         this.selectTile(rotation)
     }
 }
-
-/**
- * Returns "foo bar" from "foo_bar"
-*/
-function splitFilename(filename) {
-    let x = ""
-    let a = filename.split('_')
-    for (let i=0; i < a.length; i++) {
-        x += a[i]
-        x = (i != a.length - 1)? x + " " : x
-    }
-    return x
-}
-
-

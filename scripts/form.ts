@@ -1,5 +1,9 @@
 import { DynamicElement } from "./dynamicElement.js"
 
+interface FormReadout {
+    [key: string]: any
+}
+
 export class Form extends DynamicElement {
     _housing: HTMLElement
     inputs = {}
@@ -13,7 +17,14 @@ export class Form extends DynamicElement {
     addInput(name:string, id: string): void {
         this.inputs[name] = document.getElementById(id)
     }
-    read(): any {
+    /**
+     * Returns object in the form of:
+     * {
+     *   "inputName": value,
+     * }
+     * with a key value pair for each input in the form.
+    */
+    read(): FormReadout {
         for (let key in this.inputs) {
             let element = this.inputs[key]
             this.values[key] = element.value

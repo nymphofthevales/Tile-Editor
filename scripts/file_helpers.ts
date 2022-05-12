@@ -18,7 +18,7 @@ function splitFilePath(filePath): Array<string> {
 /**
  * Gets DIR from ./foo/DIR/name.extension
 */
-function extractDirectory(filePath: string): string {
+export function extractDirectory(filePath: string): string {
     return splitFilePath(filePath)[0]
 }
 /**
