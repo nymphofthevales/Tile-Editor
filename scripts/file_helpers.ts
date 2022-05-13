@@ -30,7 +30,7 @@ export function extractFilename(filePath: string): string {
 /**
  * Gets EXTENSION from ./foo/dir/name.EXTENSION
 */
-function extractExtension(filePath: string): string {
+export function extractExtension(filePath: string): string {
     return splitFilePath(filePath)[2]
 }
 /**

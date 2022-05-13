@@ -1,0 +1,17 @@
+{
+    "name": "Asteroid Surface",
+    "rotation_groups": [
+        {
+            "name": "corner",
+            "group": ["dr","ld","lu","ur"]
+        },
+        {
+            "name": "internal_corner",
+            "group": ["dri","ldi","lui","uri"]
+        },
+        {
+            "name": "surface",
+            "group": ["u","r","d","l"]
+        }
+    ]
+}

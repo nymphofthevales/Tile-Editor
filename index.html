@@ -37,7 +37,24 @@
                         </div>
                     </div>
                 </div>
-                <button id="CTRL-MENU-TOGGLE">toggle menu</button>
+                <button id="CTRL-MENU-TOGGLE">Toggle Menu</button>
+                <div id="map-save-frame" class="fill-screen hidden">
+                    <div id="map-save-popup" class="opaque center outlined">
+                        <label for="SAVE-FORM">
+                            <h2>Save settings</h2>
+                        </label>
+                        <form action="javascript:void(0);" id="SAVE-FORM" name="save-form" class="outlined vert-flex start-form">
+                            <label for="SAVE-CROP">Crop grid on save?</label>
+                            <input type="checkbox" name="SAVE-CROP" id="SAVE-CROP">
+                            <label for="SAVE-FILENAME">Name:</label>
+                            <input type="text" name="SAVE-FILENAME" id="SAVE-FILENAME">
+                            <div class="horz-flex">
+                                <button id="SAVE-SUBMIT">Save</button>
+                                <button id="SAVE-CLOSE">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="main-menu" class="opaque fill-screen">
@@ -66,10 +83,7 @@
                         <input type="number" value="10" name="NEWMAP-HEIGHT" id="NEWMAP-HEIGHT">
 
                         <label for="NEWMAP-TILESET" class="setup-form-label">Tileset:</label>
-                        <select name="NEWMAP-TILESET" id="NEWMAP-TILESET">
-                            <option value="">None</option>
-                            <option value="labyrinth" name="labyrinth" selected>Labyrinth Tiles</option>
-                        </select>
+                        <select name="NEWMAP-TILESET" id="NEWMAP-TILESET"></select>
 
                         <div class="horz-flex">
                             <button id="NEWMAP-SUBMIT">Make</button>

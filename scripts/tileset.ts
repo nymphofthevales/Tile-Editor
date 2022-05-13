@@ -46,7 +46,7 @@ export class Tileset {
         let parent = this
         console.log(`tileset path: ${this._path}`)
         iterateOnImageFiles(this._path, function(path, filename) {
-            let filePath = path + '/' + filename
+            let filePath = path + filename
             parent.addTile(filePath)
         })
     }
@@ -55,7 +55,7 @@ export class Tileset {
         this._tiles.set(filename, new Tile(filePath))
     }
     readSpecifications(): void {
-        let path = this._path + '/' + 'specifications.json';
+        let path = this._path + 'specifications.json';
         fs.readFile(path, 'utf8', (err, data)=>{
             if (err) {
                 this.name = "Untitled Tileset"

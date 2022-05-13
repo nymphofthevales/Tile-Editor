@@ -2,6 +2,9 @@ import { Form } from "./scripts/form.js"
 import { GridController } from "./scripts/controller.js"
 import { DynamicElement } from "./scripts/dynamicElement.js"
 import { GridIOManager } from "./scripts/gridio.js"
+import { extractExtension, extractFilename } from "./scripts/file_helpers.js"
+import { Tileset } from "./scripts/tileset.js"
+import { capitalize } from "./scripts/string_helpers.js";
 const fs = require("fs")
 
 let controller: GridController
@@ -30,6 +33,7 @@ setupForm.onClose = () => {
     setupForm.clearInputs()
 }
 document.getElementById("MENU-NEW").addEventListener('mouseup', ()=>{
+    fillTilesetsMenu()
     setupForm.show()
 })
 
@@ -60,10 +64,48 @@ loadForm.onClose = () => {
 }
 
 document.getElementById("MENU-LOAD").addEventListener('mouseup', ()=>{
+    fillSavesMenu()
     loadForm.show()
 })
 
+function fillSavesMenu() {
+    let saves: Array<string> = fs.readdirSync("./saves")
+    let selector = document.getElementById("LOADMAP-SELECTOR")
+    saves.forEach((filename, index, array)=>{
+        if (filename !="dynamo.json") {
+            let ext = extractExtension(filename)
+            let name = capitalize(extractFilename(filename))
+            let option = document.createElement("option")
+            if (ext == "json") {
+                selector.appendChild(option).id= `${name}-selector`
+                let currentOption = <HTMLInputElement>document.getElementById(`${name}-selector`)
+                currentOption.textContent = name
+                currentOption.value = name
+            }
+        }
+        
+    })
+}
 
+function fillTilesetsMenu() {
+    let tilesets: Array<string> = fs.readdirSync("./tilesets")
+    let selector = document.getElementById("NEWMAP-TILESET")
+    tilesets.forEach((dirname: string, index, array)=>{
+        if (!dirname.includes(".")) {
+            let option = document.createElement("option")
+            selector.appendChild(option).id= `${dirname}-selector`
+            let currentOption = <HTMLInputElement>document.getElementById(`${dirname}-selector`)
+            let tilesetName;
+            try {
+                tilesetName = JSON.parse(fs.readFileSync(`./tilesets/${dirname}/specifications.json`)).name
+            }  catch (err) {
+                tilesetName = "Untitled Tileset"
+            }
+            currentOption.textContent = tilesetName
+            currentOption.value = dirname
+        }
+    })
+}
 
 //TEMP//
 document.getElementById("CTRL-NAV-QUIT").addEventListener('mouseup', ()=>{

@@ -1,0 +1,21 @@
+{
+    "name": "Pipes",
+    "rotation_groups": [
+        {
+            "name": "corner",
+            "group": ["dr","ld","lu","ur"]
+        },
+        {
+            "name": "t_intersection",
+            "group": ["ldr","lud","lur","udr"]
+        },
+        {
+            "name": "straight",
+            "group": ["lr", "ud"]
+        },
+        {
+            "name": "pipe_end",
+            "group": ["d","l","u","r"]
+        }
+    ]
+}

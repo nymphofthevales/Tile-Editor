@@ -35,7 +35,7 @@ export class GridController {
         }
         this.workingSelector = new GridSelector(this.workingGrid)
 
-        let tileset = new Tileset(`./tilesets/${tilesetName}`)
+        let tileset = new Tileset(`./tilesets/${tilesetName}/`)
         this.workingRenderer = new GridRenderer(target, tileset)
         this.ident = this.workingRenderer.identifier
 

@@ -3,12 +3,12 @@ import { Coordinate } from "./coordinate.js"
 const fs = require("fs")
 
 export interface GridPreset {
-    width: number,
-    height: number,
-    generate_from: Coordinate
+    w: number,
+    h: number,
+    from: Coordinate
     cells: Array<{
-        position: Coordinate,
-        data: any
+        ps: Coordinate,
+        dt: any
     }>
 }
 
@@ -20,25 +20,25 @@ export interface MapSave {
 export class GridIOManager {
     defaultDataEvaluator = (data) => {return Object.keys(data).length == 0}
     generateGridFromPreset(preset: GridPreset): Grid {
-        let presetGrid = new Grid(preset.width, preset.height, {generateFrom:preset.generate_from})
+        let presetGrid = new Grid(preset.w, preset.h, {generateFrom:preset.from})
         preset.cells.forEach((presetCell, index, array) => {
-            presetGrid.cell(presetCell.position).data = presetCell.data
+            presetGrid.cell(presetCell.ps).data = presetCell.dt
         })
         return presetGrid
     }
     writeGridToPreset(grid: Grid, dataEvaluator: (data:object)=>boolean = this.defaultDataEvaluator): GridPreset {
         let preset = {
-            width: grid.width,
-            height: grid.height,
-            generate_from: grid.row(grid.bottom).column(grid.left).XYCoordinate,
+            w: grid.width,
+            h: grid.height,
+            from: grid.row(grid.bottom).column(grid.left).XYCoordinate,
             cells: []
         }
         grid.forEachCell((cell, grid, preset)=>{
             let isEmpty = dataEvaluator(cell.data)
             if (!isEmpty) {
                 let cellPreset = {
-                    position: cell.XYCoordinate,
-                    data: cell.data
+                    ps: cell.XYCoordinate,
+                    dt: cell.data
                 }
                 preset.cells.push(cellPreset)
             }
