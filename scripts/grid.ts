@@ -448,6 +448,20 @@ export class Grid {
                 break;
         }
     }
+    increaseHeightEvenly(amount) {
+        let directions: Array<Direction> = ["top","bottom"]
+        for (let i=0; i < amount; i++) {
+            let direction = directions[ i%2 ]
+            this.increaseHeight(1, direction)
+        }
+    }
+    increaseWidthEvenly(amount) {
+        let directions: Array<Direction> = ["left","right"]
+        for (let i=0; i < amount; i++) {
+            let direction = directions[ i%2 ]
+            this.increaseWidth(1, direction)
+        }
+    }
     /**
      * Recursively removes rows and columns from the grid from each direction until it reaches a column or row that has data in at least one of the cells. 
      * @param dataEvaluator is a user-defined callback used to check whether a cell's data can be considered empty. Should return true if the cell data passed to it is empty and the cell should be removed, and false if the cell should be kept.
@@ -488,5 +502,83 @@ export class Grid {
         } else if (PerpendicularDirections[iterations] != undefined) {
             this.cropGrid(dataEvaluator, PerpendicularDirections[iterations], iterations + 1)
         }
+    }
+    /**
+     * Combine another Grid with this one, added onto the specified direction.
+    */
+    concatenate(original: Grid, other: Grid, to: Direction) {
+        let combinedSize;
+        let originalSize;
+        switch (to) {
+            case "top":
+            case "bottom": 
+                let normalizedSize = Math.max(original.height, other.height)
+                originalSize = original.height;
+                original.increaseWidthEvenly(combinedSize)
+                original.increaseHeight(other.height, to)
+                break;
+            case "left":
+            case "right": 
+                combinedSize = Math.max(original.width, other.width)
+                originalSize = original.width;
+                original.increaseHeightEvenly(combinedSize)
+                original.increaseWidth(other.width, to)
+                break;
+        }
+        let iterations = 0
+        iterations = other.forEachCell((cell, other, iterations)=>{
+            let relativeX = iterations % other.width;
+            let relativeY = iterations % other.height;
+            //let offsetCell = this.getOffsetCell(original, [relativeX, relativeY], to)
+            //this.copyCellData(cell, offsetCell)
+            return iterations++
+        }, iterations)
+    }
+    concatenateGrids(original: Grid, other: Grid, to: Direction) {
+        let referenceIndex = original[to]
+        this.normalizeSize(original, other, getAxis(to))
+        original.increaseSize(other[getAxis(to)], to)
+        let iterations = 0;
+        other.forEachCell((otherCell, otherGrid, iterations)=>{
+            let offsetCoordinate = this.generateOffsetCoordinates(otherCell, iterations, referenceIndex, to)
+            this.copyCellData(otherCell, original.cell(offsetCoordinate))
+            return iterations++
+        }, iterations)
+    }
+    normalizeSize(a:Grid, b:Grid, axis: "width"|"height"): void {
+        if (a[axis] > b[axis]) {
+            let difference = a[axis] - b[axis]
+            switch (axis) {
+                case "width": return b.increaseWidthEvenly(difference)
+                case "height": return b.increaseHeightEvenly(difference)
+            }
+        } else {
+            let difference = b[axis]- a[axis]
+            switch (axis) {
+                case "width": return a.increaseWidthEvenly(difference)
+                case "height": return a.increaseHeightEvenly(difference)
+            }
+        }
+    }
+    generateOffsetCoordinates(cell: Cell, relativeCounter: number, referenceIndex, to: Direction): Coordinate {
+        let [currentX, currentY] = cell.XYCoordinate
+        let parentGrid = cell.parentGrid
+        let [relativeX, relativeY] = [relativeCounter % parentGrid.width, relativeCounter % parentGrid.height]
+        let [offsetX, offsetY] = [referenceIndex + relativeX, relativeY]
+        return [offsetX, offsetY]
+    }
+    copyCellData(from, to) {
+        to.data = from.data
+    }
+}
+
+function getAxis(direction: Direction) {
+    switch (direction) {
+        case "top":
+        case "bottom":
+            return "height"
+        case "left":
+        case "right":
+            return "width"
     }
 }

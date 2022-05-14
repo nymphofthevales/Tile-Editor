@@ -44,10 +44,10 @@
                             <h2>Save settings</h2>
                         </label>
                         <form action="javascript:void(0);" id="SAVE-FORM" name="save-form" class="outlined vert-flex start-form">
-                            <label for="SAVE-CROP">Crop grid on save?</label>
-                            <input type="checkbox" name="SAVE-CROP" id="SAVE-CROP">
                             <label for="SAVE-FILENAME">Name:</label>
                             <input type="text" name="SAVE-FILENAME" id="SAVE-FILENAME">
+                            <label for="SAVE-CROP">Crop grid on save?</label>
+                            <input type="checkbox" name="SAVE-CROP" id="SAVE-CROP">
                             <div class="horz-flex">
                                 <button id="SAVE-SUBMIT">Save</button>
                                 <button id="SAVE-CLOSE">Cancel</button>
@@ -99,9 +99,7 @@
                     </label>
                     <form action="javascript:void(0);" id="LOADMAP-FORM" name="loadmap-form" class="outlined vert-flex start-form">
                         <label for="LOADMAP-SELECTOR" class="loadmap-form-label">Map:</label>
-                        <select name="LOADMAP-SELECTOR" id="LOADMAP-SELECTOR">
-                            <option value="dynamo" name="dynamo" selected>Dynamo</option>
-                        </select>
+                        <select name="LOADMAP-SELECTOR" id="LOADMAP-SELECTOR"></select>
                         
                         <div class="horz-flex">
                             <button id="LOADMAP-SUBMIT">Load</button>

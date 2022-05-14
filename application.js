@@ -21,13 +21,11 @@ setupForm.onSubmit = () => {
     height = parseInt(height);
     controller = new GridController(width, height, target, tileset);
     startEditor();
-    setupForm.clearInputs();
     setupForm.hide();
 };
 setupForm.closeInput = "NEWMAP-CLOSE";
 setupForm.onClose = () => {
     setupForm.hide();
-    setupForm.clearInputs();
 };
 document.getElementById("MENU-NEW").addEventListener('mouseup', () => {
     fillTilesetsMenu();
@@ -49,12 +47,10 @@ loadForm.onSubmit = () => {
     controller = new GridController(0, 0, target, tileset, presetGrid);
     startEditor();
     loadForm.hide();
-    loadForm.clearInputs();
 };
 loadForm.closeInput = "LOADMAP-CLOSE";
 loadForm.onClose = () => {
     loadForm.hide();
-    loadForm.clearInputs();
 };
 document.getElementById("MENU-LOAD").addEventListener('mouseup', () => {
     fillSavesMenu();
@@ -64,11 +60,11 @@ function fillSavesMenu() {
     let saves = fs.readdirSync("./saves");
     let selector = document.getElementById("LOADMAP-SELECTOR");
     saves.forEach((filename, index, array) => {
-        if (filename != "dynamo.json") {
-            let ext = extractExtension(filename);
-            let name = capitalize(extractFilename(filename));
-            let option = document.createElement("option");
-            if (ext == "json") {
+        let ext = extractExtension(filename);
+        let name = capitalize(extractFilename(filename));
+        let option = document.createElement("option");
+        if (ext == "json") {
+            if (document.getElementById(`${name}-selector`) == null) {
                 selector.appendChild(option).id = `${name}-selector`;
                 let currentOption = document.getElementById(`${name}-selector`);
                 currentOption.textContent = name;
@@ -82,18 +78,20 @@ function fillTilesetsMenu() {
     let selector = document.getElementById("NEWMAP-TILESET");
     tilesets.forEach((dirname, index, array) => {
         if (!dirname.includes(".")) {
-            let option = document.createElement("option");
-            selector.appendChild(option).id = `${dirname}-selector`;
-            let currentOption = document.getElementById(`${dirname}-selector`);
-            let tilesetName;
-            try {
-                tilesetName = JSON.parse(fs.readFileSync(`./tilesets/${dirname}/specifications.json`)).name;
+            if (document.getElementById(`${dirname}-selector`) == null) {
+                let option = document.createElement("option");
+                selector.appendChild(option).id = `${dirname}-selector`;
+                let currentOption = document.getElementById(`${dirname}-selector`);
+                let tilesetName;
+                try {
+                    tilesetName = JSON.parse(fs.readFileSync(`./tilesets/${dirname}/specifications.json`)).name;
+                }
+                catch (err) {
+                    tilesetName = "Untitled Tileset";
+                }
+                currentOption.textContent = tilesetName;
+                currentOption.value = dirname;
             }
-            catch (err) {
-                tilesetName = "Untitled Tileset";
-            }
-            currentOption.textContent = tilesetName;
-            currentOption.value = dirname;
         }
     });
 }

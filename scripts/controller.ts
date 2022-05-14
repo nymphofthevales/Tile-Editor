@@ -11,6 +11,10 @@ import { RotationGroup } from "./RotationGroup.js"
 import { extractDirectory } from "./file_helpers.js"
 const fs = require("fs")
 
+interface SaveOptions {
+    
+}
+
 export class GridController {
     workingGrid: Grid
     workingSelector: GridSelector
@@ -60,7 +64,7 @@ export class GridController {
             this.workingRenderer.renderTileset(this.workingGrid)
         }, 500)
     }
-    export() {
+    export(options?: SaveOptions) {
         let emptyTileEvaluator = (cellData)=>{return cellData.tile == "none" || cellData.tile == undefined}
         this.workingGrid.cropGrid(emptyTileEvaluator)
         let savedGrid = this.IOManager.writeGridToPreset(this.workingGrid, emptyTileEvaluator)
@@ -71,9 +75,6 @@ export class GridController {
         let path = `./saves/tiledMap_${this.ident}.json`
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
-    }
-    import() {
-
     }
 }
 
