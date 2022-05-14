@@ -5,15 +5,18 @@ export type CoordinateAxis = Array<number>
 
 /**
  * Generates an array of numbers representing labels on a coordinate axis.
- * Sizes are always made odd to allow a centre at (0,0).
- * @param size the desired total size of the axis. Should be odd for best results.
- * @returns Returns an array with a length equal to size and a zero in the middle.
+ * For even width axes, 0 will be placed to the right. See examples.
+ * @param size the desired total size of the axis.
+ * @returns Returns an array with a length equal to size.
  * @example
  * generateCoordinateAxis(5)
  * // Returns [-2,-1,0,1,2]
  * @example
+ * generateCoordinateAxis(2)
+ * // Returns [-1,0]
+ * @example
  * generateCoordinateAxis(10)
- * // Returns [-5,-4,-3,-2,-1,0,1,2,3,4,5]
+ * // Returns [-5,-4,-3,-2,-1,0,1,2,3,4]
  * @example 
  * generateCoordinateAxis(1)
  * // Returns [0]
@@ -25,7 +28,7 @@ export function generateCoordinateAxis(size: number, from?: number): CoordinateA
     let distanceFromOrigin: number;
     let axis = [];
     if (size != 0) {
-        if (from) {
+        if (from!=undefined) {
             distanceFromOrigin = absNegative(from)
         } else {
             distanceFromOrigin = absNegative( (size - (size%2)) / 2 )

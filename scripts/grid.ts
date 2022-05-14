@@ -382,7 +382,7 @@ export class Grid {
         //continues after most recent elements in map; no change in order necessary
         let verticalPosition = this.top + 1
         for (let i = 0; i < amount; i++) {
-            this.set(verticalPosition, new Row(this.width,verticalPosition, this))
+            this.set(verticalPosition, new Row(this.width,verticalPosition, this, true, this.left))
             verticalPosition++
         }
     }
@@ -448,13 +448,39 @@ export class Grid {
                 break;
         }
     }
+    /**
+     * Increases height by alternating adding rows to top and bottom.
+     * When amount is odd, will expand more to the bottom, since bottom is expanded first.
+     * This imitates behaviour of {@link generateCoordinateAxis}, where negative (bottom) values are preferred. 
+     * @example
+     * YAxis = [-1,0,1]
+     * increaseHeightEvenly(2)
+     * YAxis = [-2,-1,0,1,2]
+     * @example
+     * YAxis = [-1,0,1]
+     * increaseHeightEvenly(1)
+     * YAxis = [-2,-1,0,1]
+    */
     increaseHeightEvenly(amount) {
-        let directions: Array<Direction> = ["top","bottom"]
+        let directions: Array<Direction> = ["bottom","top"]
         for (let i=0; i < amount; i++) {
             let direction = directions[ i%2 ]
             this.increaseHeight(1, direction)
         }
     }
+    /**
+     * Increases width by alternating adding rows to left and right.. 
+     * When amount is odd, will expand more to the left, since left is expanded to first.
+     * This imitates behaviour of {@link generateCoordinateAxis}, where negative (left) values are preferred. 
+     * @example
+     * XAxis = [-1,0,1]
+     * increaseWidthEvenly(2)
+     * XAxis = [-2,-1,0,1,2]
+     * @example
+     * XAxis = [-1,0,1]
+     * increaseWidthEvenly(1)
+     * XAxis = [-2,-1,0,1]
+    */
     increaseWidthEvenly(amount) {
         let directions: Array<Direction> = ["left","right"]
         for (let i=0; i < amount; i++) {
@@ -507,42 +533,14 @@ export class Grid {
      * Combine another Grid with this one, added onto the specified direction.
     */
     concatenate(original: Grid, other: Grid, to: Direction) {
-        let combinedSize;
-        let originalSize;
-        switch (to) {
-            case "top":
-            case "bottom": 
-                let normalizedSize = Math.max(original.height, other.height)
-                originalSize = original.height;
-                original.increaseWidthEvenly(combinedSize)
-                original.increaseHeight(other.height, to)
-                break;
-            case "left":
-            case "right": 
-                combinedSize = Math.max(original.width, other.width)
-                originalSize = original.width;
-                original.increaseHeightEvenly(combinedSize)
-                original.increaseWidth(other.width, to)
-                break;
-        }
-        let iterations = 0
-        iterations = other.forEachCell((cell, other, iterations)=>{
-            let relativeX = iterations % other.width;
-            let relativeY = iterations % other.height;
-            //let offsetCell = this.getOffsetCell(original, [relativeX, relativeY], to)
-            //this.copyCellData(cell, offsetCell)
-            return iterations++
-        }, iterations)
-    }
-    concatenateGrids(original: Grid, other: Grid, to: Direction) {
         let referenceIndex = original[to]
-        this.normalizeSize(original, other, getAxis(to))
+        this.normalizeSize(original, other, getOtherAxis(to))
         original.increaseSize(other[getAxis(to)], to)
         let iterations = 0;
-        other.forEachCell((otherCell, otherGrid, iterations)=>{
-            let offsetCoordinate = this.generateOffsetCoordinates(otherCell, iterations, referenceIndex, to)
+        iterations = other.forEachCell((otherCell, otherGrid, iterations)=>{
+            let offsetCoordinate = this.generateOffsetCoordinates(original, otherGrid, iterations, referenceIndex, to)
             this.copyCellData(otherCell, original.cell(offsetCoordinate))
-            return iterations++
+            return iterations + 1
         }, iterations)
     }
     normalizeSize(a:Grid, b:Grid, axis: "width"|"height"): void {
@@ -560,12 +558,29 @@ export class Grid {
             }
         }
     }
-    generateOffsetCoordinates(cell: Cell, relativeCounter: number, referenceIndex, to: Direction): Coordinate {
-        let [currentX, currentY] = cell.XYCoordinate
-        let parentGrid = cell.parentGrid
-        let [relativeX, relativeY] = [relativeCounter % parentGrid.width, relativeCounter % parentGrid.height]
-        let [offsetX, offsetY] = [referenceIndex + relativeX, relativeY]
-        return [offsetX, offsetY]
+    generateOffsetCoordinates(original: Grid, other: Grid, relativeCounter: number, referenceIndex: number, to: Direction): Coordinate {
+        let relativeX = relativeCounter % other.width //remainder
+        let relativeY = (relativeCounter - (relativeCounter % other.height)) / other.height //quotient, equivalent to floor
+        let offsetX: number;
+        let offsetY: number;
+        switch (to) {
+            case "top": 
+                offsetX = original.left + relativeX
+                offsetY = referenceIndex + 1 + relativeY
+                return [offsetX, offsetY]
+            case "bottom": 
+                offsetX = original.left + relativeX
+                offsetY = referenceIndex - (other.height - relativeY)
+                return [offsetX, offsetY]
+            case "left": 
+                offsetX = referenceIndex - (other.width - relativeX)
+                offsetY = original.bottom + relativeY
+                return [offsetX, offsetY]
+            case "right": 
+                offsetX = referenceIndex + 1 + relativeX
+                offsetY = original.bottom + relativeY
+                return [offsetX, offsetY]
+        }
     }
     copyCellData(from, to) {
         to.data = from.data
@@ -580,5 +595,16 @@ function getAxis(direction: Direction) {
         case "left":
         case "right":
             return "width"
+    }
+}
+
+function getOtherAxis(direction) {
+    switch (direction) {
+        case "top":
+        case "bottom":
+            return "width"
+        case "left":
+        case "right":
+            return "height"
     }
 }

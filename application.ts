@@ -5,6 +5,7 @@ import { GridIOManager } from "./scripts/gridio.js"
 import { extractExtension, extractFilename } from "./scripts/file_helpers.js"
 import { Tileset } from "./scripts/tileset.js"
 import { capitalize } from "./scripts/string_helpers.js";
+import { Grid } from "./scripts/grid.js"
 const fs = require("fs")
 
 let controller: GridController
@@ -108,5 +109,4 @@ function fillTilesetsMenu() {
 document.getElementById("CTRL-NAV-QUIT").addEventListener('mouseup', ()=>{
     controller.export()
 })
-
 
