@@ -543,6 +543,9 @@ export class Grid {
             return iterations + 1
         }, iterations)
     }
+    /**
+     * Makes both grids the size of the largest grid on the axis specified.
+    */
     normalizeSize(a:Grid, b:Grid, axis: "width"|"height"): void {
         if (a[axis] > b[axis]) {
             let difference = a[axis] - b[axis]
@@ -558,9 +561,12 @@ export class Grid {
             }
         }
     }
-    generateOffsetCoordinates(original: Grid, other: Grid, relativeCounter: number, referenceIndex: number, to: Direction): Coordinate {
-        let relativeX = relativeCounter % other.width //remainder
-        let relativeY = (relativeCounter - (relativeCounter % other.height)) / other.height //quotient, equivalent to floor
+    /**
+     * Converts the place in iteraion through the other grid into an XY position in the original grid, 
+     * thereby mapping every cell in the other grid to a cell in the original grid.
+    */
+    generateOffsetCoordinates(original: Grid, other: Grid, iterationCounter: number, referenceIndex: number, to: Direction): Coordinate {
+        let [relativeX, relativeY] = this.generateRelativeXYCoordinates(iterationCounter, other)
         let offsetX: number;
         let offsetY: number;
         switch (to) {
@@ -581,6 +587,21 @@ export class Grid {
                 offsetY = original.bottom + relativeY
                 return [offsetX, offsetY]
         }
+    }
+    /**
+     * Generates an XY Coordinate relative to the bottom left corner of the given grid.
+     * Based on the fact that iteration with ForEachCell goes negative => positive in a rowwise fashion, 
+     * X and Y coordinates relative to the bottom left corner of the other grid can be extracted from the iteration counter
+     * by using width and height in the division algorithm a = qb + r where
+     * a = iterationCounter,
+     * b = other.width or other.height
+     * such that relativeX = r
+     * and relativeY = q
+    */
+    generateRelativeXYCoordinates(iterationCounter: number, other: Grid): Coordinate {
+        let relativeX = iterationCounter % other.width //remainder
+        let relativeY = (iterationCounter - (iterationCounter % other.height)) / other.height //quotient, equivalent to floor(a/b)
+        return [relativeX, relativeY]
     }
     copyCellData(from, to) {
         to.data = from.data
