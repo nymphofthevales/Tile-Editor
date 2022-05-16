@@ -9,6 +9,7 @@ import { addClassToAllMembers, removeClassFromAllMembers, forEachInClass } from 
 import { DynamicElement } from "./dynamicElement.js"
 import { RotationGroup } from "./RotationGroup.js"
 import { extractDirectory } from "./file_helpers.js"
+import { activateDataEditor } from "./menu_functions.js"
 const fs = require("fs")
 
 export class GridController {
@@ -71,7 +72,7 @@ export class GridController {
         if (filename != undefined) {
             path = `./saves/${filename}.json`
         } else {
-            path = `./saves/tiledMap_${this.ident}.json`
+            path = `./saves/autosave_${this.ident}.json`
         }
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
@@ -90,8 +91,6 @@ export class GridController {
         this.zoomManager.setZoom('grid-cell')
         this.mouseManager.setupListeners()
     }
-
-
 }
 
 export class ActionManager {
@@ -251,6 +250,7 @@ class MouseManager{
         getCellReference([x,y], this.ident).classList.remove('hovered')
     }
    setupListeners() {
+       const parentController = this.parentController
         this.actionManager.grid.forEachCell((cell, grid, returnVariable) => {
             let [x,y] = cell.XYCoordinate
             let reference = getCellReference( [x,y], this.ident )
@@ -281,6 +281,9 @@ class MouseManager{
                 this.mousePosition.clear()
                 this.mousePosition.push([x,y])
                 this.hover()
+            })
+            reference.addEventListener("dblclick", () => {
+                activateDataEditor([x,y], cell.data, parentController)
             })
         })  
     }

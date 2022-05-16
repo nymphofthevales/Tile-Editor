@@ -187,9 +187,10 @@
                     <h2>Cell Data Editor</h2>
                 </label>
                 <form action="javascript:void(0);" id="DATA-FORM" name="save-form" class=" customform-content vert-flex">
+                    <p>Manually edit cell data, including tile type, in case you wanted to do that for some reason. Data follows JSON format.</p>
                     <fieldset id="DATA-ENTRY" class="horz-flex">
-                        <label for="DATA-ENTRY">Visual Style</label>
-                        <input type="text" id="DATA-ENTRY-INPUT">
+                        <label for="DATA-ENTRY" id="DATA-ENTRY-LABEL">Cell Data</label>
+                        <textarea id="DATA-ENTRY-INPUT"></textarea>
                     </fieldset>
                     <div class="horz-flex">
                         <button id="DATA-CONFIRM">Confirm changes</button>

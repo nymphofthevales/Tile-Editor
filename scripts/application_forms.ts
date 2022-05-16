@@ -25,6 +25,11 @@ addForm.addInput("direction", "ADDMAP-DIRECTION")
 addForm.submitInput = "ADDMAP-SUBMIT"
 addForm.closeInput = "ADDMAP-CLOSE"
 
+export const dataForm= new Form("map-data-frame")
+dataForm.addInput("data", "DATA-ENTRY-INPUT")
+dataForm.submitInput = "DATA-CONFIRM"
+dataForm.closeInput = "DATA-CLOSE"
+
 export const nukeForm = new Form("map-nuke-frame")
 nukeForm.submitInput = "NUKE-SUBMIT"
 nukeForm.closeInput = "NUKE-CLOSE"

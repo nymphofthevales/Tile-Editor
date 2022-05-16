@@ -9,7 +9,8 @@ import {
     saveCurrentMap,
     addToCurrentMap,
     endEditor,
-    setAddFormDirection
+    setAddFormDirection,
+    appendCellData
 }  from "./scripts/menu_functions.js"
 import { 
     setupForm, 
@@ -17,7 +18,8 @@ import {
     saveForm, 
     addForm,
     nukeForm,
-    optsForm
+    optsForm,
+    dataForm
 } from "./scripts/application_forms.js"
 
 let controller: GridController
@@ -49,6 +51,9 @@ optsForm.onClose     = () => { optsForm.hide() }
 let colorSheet = <HTMLLinkElement>document.getElementById("color-palette")
 listen("STYLE-DARK", "mouseup", () => { colorSheet.href = "./styles/darkmode.css" })
 listen("STYLE-LIGHT", "mouseup", () => { colorSheet.href = "./styles/lightmode.css"  })
+
+dataForm.onSubmit  = () => { appendCellData(dataForm, controller) }
+dataForm.onClose    = () => { dataForm.hide() }
 
 
 listen("MENU-NEW", "mouseup", () => { fillTilesetsMenu(); setupForm.show() })

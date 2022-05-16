@@ -3,7 +3,7 @@ import { parseMapKeysToArray, concatenateMaps, insertElementInMap } from "./map_
 import { Direction, AdjacentDirection, QuantizedAngle, Directions, PerpendicularDirections } from "./direction.js"
 const fs = require('fs')
 
-interface CellData {
+export interface CellData {
     [key: string]: any
 }
 
@@ -565,7 +565,7 @@ export class Grid {
         }
     }
     /**
-     * Converts the place in iteraion through the other grid into an XY position in the original grid, 
+     * Converts the place in iteration through the other grid into an XY position in the original grid, 
      * thereby mapping every cell in the other grid to a cell in the original grid.
     */
     generateOffsetCoordinates(original: Grid, other: Grid, iterationCounter: number, referenceIndex: number, to: Direction): Coordinate {

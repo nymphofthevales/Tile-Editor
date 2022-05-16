@@ -473,3 +473,16 @@ fieldset {
     width: 70px;
     margin: 0;
 }
+
+#map-data-popup {
+    width: 35vw;
+}
+#DATA-ENTRY-INPUT {
+    width: 20vw;
+    height: 30vh;
+    margin: 15px;
+    margin: 0 auto;
+    color: black;
+    font-size: medium;
+    overflow: auto;
+}

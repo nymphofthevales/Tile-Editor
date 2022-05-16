@@ -4,6 +4,9 @@ import { DynamicElement } from "./dynamicElement.js"
 import { capitalize } from "./string_helpers.js";
 import { Form } from "./form.js";
 import { Direction } from "./direction.js"
+import { Coordinate } from "./coordinate.js";
+import { Cell, CellData } from "./grid.js"
+import { dataForm } from "./application_forms.js"
 const fs = require("fs")
 
 let target = document.getElementById('grid-mount')
@@ -117,3 +120,18 @@ export function setAddFormDirection(addForm: Form, direction: Direction) {
     current.blur()
 }
 
+let lastEditedCell: Cell
+
+export function activateDataEditor(cellXY: Coordinate, cellData: CellData, controller: GridController) {
+    dataForm.inputs['data'].value = JSON.stringify(cellData)
+    document.getElementById("DATA-ENTRY-LABEL").textContent += ` for ${JSON.stringify(cellXY)}`
+    lastEditedCell = controller.workingGrid.cell(cellXY)
+    dataForm.show()
+}
+
+export function appendCellData(dataForm: Form, controller: GridController) {
+    let { data } = dataForm.read()
+    lastEditedCell.data = JSON.parse(data)
+    document.getElementById("DATA-ENTRY-LABEL").textContent = `Cell Data`
+    dataForm.hide()
+}
