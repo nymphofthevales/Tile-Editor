@@ -17,7 +17,7 @@
 
 <p>Originally created to aid the development of my <a href="https://github.com/nymphofthevales/Keeper-of-the-Labyrinth">Keeper of the Labyrinth</a> project, since that project includes a save file viewer in the form of a branching map.</p>
 
-<p>Capable of save/load with a readable JSON format. Easily add user-defined tilesets as folders of images with a specifications file. Expand workspace indefinitely, and crop down to useful area at any time. Add saved maps to the current workspace to combine maps.</p>
+<p>Capable of save/load with a readable JSON format. Easily add user-defined tilesets as folders of images with a specifications file. Expand workspace indefinitely, and crop down to useful area at any time. Add saved maps to the current workspace to combine maps. Simplify tilesets by automatically managing tile rotations.</p>
 <p>Currently in development. Final build coming soon.</p>
 
 
