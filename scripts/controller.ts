@@ -11,10 +11,6 @@ import { RotationGroup } from "./RotationGroup.js"
 import { extractDirectory } from "./file_helpers.js"
 const fs = require("fs")
 
-interface SaveOptions {
-    
-}
-
 export class GridController {
     workingGrid: Grid
     workingSelector: GridSelector
@@ -29,6 +25,7 @@ export class GridController {
     IOManager: GridIOManager
 
     ident: string
+    emptyTileEvaluator = (cellData)=>{return cellData.tile == "none" || cellData.tile == undefined}
     
     constructor(w, h, target: HTMLElement = document.body, tilesetName: string, preset?: GridPreset) {
         this.IOManager = new GridIOManager()
@@ -64,18 +61,37 @@ export class GridController {
             this.workingRenderer.renderTileset(this.workingGrid)
         }, 500)
     }
-    export(options?: SaveOptions) {
-        let emptyTileEvaluator = (cellData)=>{return cellData.tile == "none" || cellData.tile == undefined}
-        this.workingGrid.cropGrid(emptyTileEvaluator)
-        let savedGrid = this.IOManager.writeGridToPreset(this.workingGrid, emptyTileEvaluator)
+    export(filename?: string) {
+        let savedGrid = this.IOManager.writeGridToPreset(this.workingGrid, this.emptyTileEvaluator)
         let save = {
             tileset: extractDirectory(this.workingRenderer.tileset._path),
             grid: savedGrid
         }
-        let path = `./saves/tiledMap_${this.ident}.json`
+        let path;
+        if (filename != undefined) {
+            path = `./saves/${filename}.json`
+        } else {
+            path = `./saves/tiledMap_${this.ident}.json`
+        }
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
     }
+    clearSession() {
+
+    }
+    cropWorkspace(): void {
+        this.workingGrid.cropGrid(this.emptyTileEvaluator)
+        this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
+    }
+    addGrid(other: GridPreset, to: Direction): void {
+        let otherGrid = this.IOManager.generateGridFromPreset(other)
+        this.workingGrid.concatenate(this.workingGrid, otherGrid, to)
+        this.workingRenderer.redoRender(this.workingGrid)
+        this.zoomManager.setZoom('grid-cell')
+        this.mouseManager.setupListeners()
+    }
+
+
 }
 
 export class ActionManager {

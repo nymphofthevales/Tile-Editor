@@ -53,11 +53,17 @@ export class GridRenderer {
      * NOTE: will run into errors here with the loading of selections, and event listeners on the rows instead of tiles.
     */
     redoRender(grid: Grid): void {
+        this.clearDOMRows()
+        this.resolveData_DocumentDeltas(grid)
+        this.renderTileset(grid)
+    }
+    clearDOMRows() {
         forEachInClass('grid-row', (element)=>{
             element.innerHTML = ''
         })
-        this.resolveData_DocumentDeltas(grid)
-        this.renderTileset(grid)
+    }
+    clearDOMRenderFrame() {
+        this.frame.innerHTML = ''
     }
     /**
      * Ensures only cells contained in the selector are rendered as selected.

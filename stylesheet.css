@@ -1,13 +1,24 @@
 
+@font-face {
+    font-family: ZenKakuRegular;
+    src: url(./assets/fonts/ZenKakuGothicNew-Regular.ttf);
+}
+@font-face {
+    font-family: ZenKakuBold;
+    src: url(./assets/fonts/ZenKakuGothicNew-Bold.ttf);
+}
+
 *{
     box-sizing: border-box;
     padding: 0 0 0 0;
     margin: 0 0 0 0;
-    color: white;
     cursor: cell;
-    font-family: Tahoma, Verdana, Geneva, sans-serif;
+    font-family: ZenKakuRegular;
     -webkit-user-drag: none;
     -webkit-app-region: no-drag;
+}
+h1, h2 {
+    font-family: ZenKakuBold;
 }
 
 body {
@@ -198,10 +209,6 @@ body {
 
 
 
-.grid-cell {
-    background-color: black;
-}
-
 .cell-default-border {
     border: 1px dotted #555555;
 }
@@ -224,10 +231,6 @@ body {
     border: 2px solid #bb88bb;
 }
 
-.hovered {
-    background: #663366;
-    background-blend-mode: lighten;
-}
 
 /******************************/
 
@@ -271,30 +274,13 @@ body {
     flex-direction: row;
 }
 
-.outlined {
-    border: 1px solid white;
-}
-
-.opaque {
-    background-color: black;
-}
-
 .hidden {
     display: none;
 }
 
 button {
-    color: white;
     font-size: 2vh;
-    background-color: rgba(255,255,255,0);
-    border: 1px solid white;
     padding: 5px;
-}
-button:focus, button:hover {
-    background-color: rgba(255,255,255,0.2)
-}
-button:active {
-    background-color: rgba(255,255,255,0.5)
 }
 
 *::-webkit-scrollbar-track {
@@ -305,22 +291,12 @@ button:active {
 *::-webkit-scrollbar {
     width: 7px;
     height: 7px;
-    background-color: black;
     pointer-events: none;
     cursor: cell;
 }
 
 *::-webkit-scrollbar-thumb {
     border-radius: 0px;
-    background-color: white;
-}
-
-*::-webkit-scrollbar-corner {
-    background: rgba(0,0,0,0);
-}
-
-fieldset {
-    border: 1px solid white;
 }
 
 legend {
@@ -369,7 +345,6 @@ input[type="text"], input[type="number"], input[type="text"]  {
 .tile-selector-button {
     margin: 10px;
     position: relative;
-    background-color: black;
 }
 .tile-selector-button img{
     height: 50px;
@@ -393,40 +368,108 @@ input[type="text"], input[type="number"], input[type="text"]  {
 
 #main-menu-content {
     display: flex;
-    color: white;
     flex-direction: column; 
+}
+#main-menu-content h1 {
+    margin: 20px;
 }
 
 .MENU-BUTTON {
-    margin: 3vh;
+    margin: 10px;
     height: 50px;
-    color: white;
     font-size: 2vh;
-    background-color: rgba(255, 255, 255, 0);
+    border: none;
 }
 
 #map-setup-popup {
     width: 25vw;
 }
 
-.start-form > label {
-    display: block;
+
+.customform {
+    min-width: 30vw;
 }
 
-.start-form, #map-setup-popup h2, #map-load-popup h2 {
-    color: white;
+.customform > label {
+    display: inline;
+    width:min-content;
+}
+
+.customform h2 {
     margin: 20px;
 }
 
-.start-form > *{
+.customform * {
     margin: 10px;
     padding: 3px;
 }
 
-.start-form > button {
-    width: 40%
+.customform button {
+    padding: 4px 20px;
 }
 
-.start-form select {
+.customform select {
     color: black;
+    font-size: medium;
+    min-width: 200px;
+}
+fieldset {
+    display: flex;
+    justify-content: space-between;
+}
+
+
+#controller-actions {
+    margin-top: 20px;
+}
+#controller-actions button {
+    margin: 4px;
+}
+
+.customform-content {
+    border: none;
+}
+
+.customform label {
+    font-family: ZenKakuBold;
+    font-size: large;
+}
+
+#addmap-direction-selector-frame {
+    height: max-content;
+    padding: 20px;
+    display: block;
+}
+#ADDMAP-DIRECTION {
+    display: grid;
+    width: min-content;
+    height: min-content;
+    grid-template-areas: 
+        ". top ."
+        "left root right"
+        ". bottom .";
+    margin: 0 auto;
+}
+#ADDMAP-DIRECTION button {
+    height: 70px;
+    width: 70px;
+    margin: 0;
+}
+#DIRECTION-TOP {
+    grid-area: top;
+}
+#DIRECTION-LEFT {
+    grid-area: left;
+}
+#DIRECTION-RIGHT {
+    grid-area: right;
+}
+#DIRECTION-BOTTOM {
+    grid-area: bottom;
+}
+#DIRECTION-ROOT {
+    grid-area: root;
+    height: 70px;
+    width: 70px;
+    margin: 0;
 }

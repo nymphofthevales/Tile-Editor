@@ -3,10 +3,13 @@ import { DynamicElement } from "./dynamicElement.js"
 interface FormReadout {
     [key: string]: any
 }
+interface InputMap {
+    [key: string]: HTMLInputElement
+}
 
 export class Form extends DynamicElement {
     _housing: HTMLElement
-    inputs = {}
+    inputs: InputMap = {}
     values = {}
     _submit: HTMLElement
     _close: HTMLElement
@@ -15,7 +18,7 @@ export class Form extends DynamicElement {
         this._housing = document.getElementById(id)
     }
     addInput(name:string, id: string): void {
-        this.inputs[name] = document.getElementById(id)
+        this.inputs[name] = <HTMLInputElement>document.getElementById(id)
     }
     /**
      * Returns object in the form of:
@@ -26,8 +29,12 @@ export class Form extends DynamicElement {
     */
     read(): FormReadout {
         for (let key in this.inputs) {
-            let element = this.inputs[key]
-            this.values[key] = element.value
+            let element = <HTMLInputElement>this.inputs[key]
+            if (element.type == "checkbox") {
+                this.values[key] = element.checked
+            } else {
+                this.values[key] = element.value
+            }
         }
         return this.values
     }

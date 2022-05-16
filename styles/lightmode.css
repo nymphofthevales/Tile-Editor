@@ -1,0 +1,79 @@
+
+
+
+
+* {
+    color: black;
+}
+
+.outlined {
+    border: 1px solid black;
+}
+
+.opaque {
+    background-color: white;
+}
+
+.grid-cell {
+    background-color: white;
+}
+.hovered {
+    background: #bb55bb;
+    background-blend-mode: multiply;
+}
+
+button {
+    color: black;
+    background-color: rgba(0,0,0,0);
+    border: 1px solid black;
+}
+button:focus, button:hover {
+    background-color: rgba(0,0,0,0.2)
+}
+button:active {
+    background-color: rgba(0,0,0,0.5)
+}
+
+*::-webkit-scrollbar {
+    background-color: white;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: black;
+}
+*::-webkit-scrollbar-corner {
+    background: rgba(0,0,0,0);
+}
+
+fieldset {
+    border: 1px solid black;
+}
+.tile-selector-button {
+    background-color: white;
+}
+
+#main-menu-content {
+    color: black;
+}
+
+.MENU-BUTTON {
+    color: white;
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.customform h2 {
+    color: black;
+}
+
+#ADDMAP-DIRECTION button {
+    border: 1px dashed #555555;
+}
+#ADDMAP-DIRECTION button:hover {
+    background-color:#ddaadd;
+    background-blend-mode: darken;
+}
+.selected-direction {
+    background-color: black !important;
+}
+#DIRECTION-ROOT {
+    background-color: black;
+}

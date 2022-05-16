@@ -534,7 +534,10 @@ export class Grid {
     */
     concatenate(original: Grid, other: Grid, to: Direction) {
         let referenceIndex = original[to]
+        console.log(`original:${original.width}x${original.height}, other:${other.width}x${other.height}`)
         this.normalizeSize(original, other, getOtherAxis(to))
+        console.log(`original:${original.width}x${original.height}, other:${other.width}x${other.height}`)
+        console.log(other.rows)
         original.increaseSize(other[getAxis(to)], to)
         let iterations = 0;
         iterations = other.forEachCell((otherCell, otherGrid, iterations)=>{
@@ -573,18 +576,22 @@ export class Grid {
             case "top": 
                 offsetX = original.left + relativeX
                 offsetY = referenceIndex + 1 + relativeY
+                console.log(`relative [${relativeX},${relativeY}] => offset [${offsetX},${offsetY}]`)
                 return [offsetX, offsetY]
             case "bottom": 
                 offsetX = original.left + relativeX
                 offsetY = referenceIndex - (other.height - relativeY)
+                console.log(`relative [${relativeX},${relativeY}] => offset [${offsetX},${offsetY}]`)
                 return [offsetX, offsetY]
             case "left": 
                 offsetX = referenceIndex - (other.width - relativeX)
                 offsetY = original.bottom + relativeY
+                console.log(`relative [${relativeX},${relativeY}] => offset [${offsetX},${offsetY}]`)
                 return [offsetX, offsetY]
             case "right": 
                 offsetX = referenceIndex + 1 + relativeX
                 offsetY = original.bottom + relativeY
+                console.log(`relative [${relativeX},${relativeY}] => offset [${offsetX},${offsetY}]`)
                 return [offsetX, offsetY]
         }
     }
@@ -601,6 +608,7 @@ export class Grid {
     generateRelativeXYCoordinates(iterationCounter: number, other: Grid): Coordinate {
         let relativeX = iterationCounter % other.width //remainder
         let relativeY = (iterationCounter - (iterationCounter % other.height)) / other.height //quotient, equivalent to floor(a/b)
+        console.log(`iteration:${iterationCounter} => [${relativeX},${relativeY}]`)
         return [relativeX, relativeY]
     }
     copyCellData(from, to) {

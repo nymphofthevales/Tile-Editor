@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <script src="./application.js" type="module" defer></script>
     <link rel="stylesheet" href="./stylesheet.css">
+    <link id="color-palette" rel="stylesheet" href="./styles/darkmode.css">
 </head>
 <body>
     <main class="fill-screen">
@@ -12,18 +13,19 @@
             <div id="application" class="fill-parent horz-flex">
                 <div id="controller-menu" class="opaque outlined">
                     <nav id="controller-nav">
-                        <button id="CTRL-NAV-TOOLS">Tools</button>
-                        <button id="CTRL-NAV-TILES">Tiles</button>
                         <button id="CTRL-NAV-OPTIONS">Options</button>
+                        <button id="CTRL-NAV-SAVE">Save</button>
                         <button id="CTRL-NAV-QUIT">Quit</button>
                     </nav>
                     <div id="controller-content">
-                        <div id="controller-options">
-
-                        </div>
                         <div id="controller-tiles">
                             <div id="selected-tile-viewer"></div>
                             <div id="tile-selector-frame"></div>
+                        </div>
+                        <div id="controller-actions" class="outline vert-flex">
+                            <button id="ACTION-CROP">Crop Workspace</button>
+                            <button id="ACTION-ADD">Add Map to Workspace</button>
+                            <button id="ACTION-CLEAR">Clear Workspace</button>
                         </div>
                     </div>
                 </div>
@@ -37,80 +39,163 @@
                         </div>
                     </div>
                 </div>
-                <button id="CTRL-MENU-TOGGLE">Toggle Menu</button>
-                <div id="map-save-frame" class="fill-screen hidden">
-                    <div id="map-save-popup" class="opaque center outlined">
-                        <label for="SAVE-FORM">
-                            <h2>Save settings</h2>
-                        </label>
-                        <form action="javascript:void(0);" id="SAVE-FORM" name="save-form" class="outlined vert-flex start-form">
-                            <label for="SAVE-FILENAME">Name:</label>
-                            <input type="text" name="SAVE-FILENAME" id="SAVE-FILENAME">
-                            <label for="SAVE-CROP">Crop grid on save?</label>
-                            <input type="checkbox" name="SAVE-CROP" id="SAVE-CROP">
-                            <div class="horz-flex">
-                                <button id="SAVE-SUBMIT">Save</button>
-                                <button id="SAVE-CLOSE">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </div>
         </div>
         <div id="main-menu" class="opaque fill-screen">
             <div id="main-menu-content" class="center">
-                <h1>TILED MAP EDITOR V2</h1>
-                <button id="MENU-NEW" class="MENU-BUTTON outlined">
+                <h1>Tiled Map Editor</h1>
+                <button id="MENU-NEW" class="MENU-BUTTON">
                     <p>New Map</p>
                 </button>
-                <button id="MENU-LOAD" class="MENU-BUTTON outlined">
+                <button id="MENU-LOAD" class="MENU-BUTTON">
                     <p>Load Map</p>
                 </button>
-                <button id="MENU-OPTIONS" class="MENU-BUTTON outlined">
+                <button id="MENU-OPTIONS" class="MENU-BUTTON">
                     <p>Options</p>
                 </button>
             </div>
-            <div id="map-setup-frame" class="opaque fill-screen hidden">
-                <div id="map-setup-popup" class="opaque center outlined">
-                    <label for="NEWMAP-FORM">
-                        <h2>New map settings</h2>
-                    </label>
-                    <form action="javascript:void(0);" id="NEWMAP-FORM" name="newmap-form" class="outlined vert-flex start-form">
+        </div>
+        <div id="map-setup-frame" class="opaque fill-screen hidden">
+            <div id="map-setup-popup" class="opaque center outlined customform">
+                <label for="NEWMAP-FORM">
+                    <h2>New map settings</h2>
+                </label>
+                <form action="javascript:void(0);" id="NEWMAP-FORM" name="newmap-form" class="customform-content  vert-flex  ">
+                    <fieldset>
                         <label for="NEWMAP-WIDTH" class="setup-form-label">Width</label>
                         <input type="number" value="10" name="NEWMAP-WIDTH" id="NEWMAP-WIDTH">
-
+                    </fieldset>
+                    <fieldset>
                         <label for="NEWMAP-HEIGHT" class="setup-form-label">Height</label>
                         <input type="number" value="10" name="NEWMAP-HEIGHT" id="NEWMAP-HEIGHT">
-
-                        <label for="NEWMAP-TILESET" class="setup-form-label">Tileset:</label>
+                    </fieldset>
+                    <fieldset>
+                        <label for="NEWMAP-TILESET" class="setup-form-label">Tileset</label>
                         <select name="NEWMAP-TILESET" id="NEWMAP-TILESET"></select>
-
-                        <div class="horz-flex">
-                            <button id="NEWMAP-SUBMIT">Make</button>
-                            <button id="NEWMAP-CLOSE">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div id="map-load-frame" class="opaque fill-screen hidden">
-                <div id="map-load-popup" class="opaque center outlined">
-                    <label for="LOADMAP-FORM">
-                        <h2>Load an existing map</h2>
-                    </label>
-                    <form action="javascript:void(0);" id="LOADMAP-FORM" name="loadmap-form" class="outlined vert-flex start-form">
-                        <label for="LOADMAP-SELECTOR" class="loadmap-form-label">Map:</label>
-                        <select name="LOADMAP-SELECTOR" id="LOADMAP-SELECTOR"></select>
-                        
-                        <div class="horz-flex">
-                            <button id="LOADMAP-SUBMIT">Load</button>
-                            <button id="LOADMAP-CLOSE">Cancel</button>
-                        </div>
-                    </form>
-                </div>
+                    </fieldset>
+                    <div class="horz-flex">
+                        <button id="NEWMAP-SUBMIT">Make</button>
+                        <button id="NEWMAP-CLOSE">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
-        <div id="popup-window-frame" class="fill-screen hidden">
-            <div id="popup" class="center">
+        <div id="map-load-frame" class="opaque fill-screen hidden">
+            <div id="map-load-popup" class="opaque center outlined customform">
+                <label for="LOADMAP-FORM">
+                    <h2>Load an existing map</h2>
+                </label>
+                <form action="javascript:void(0);" id="LOADMAP-FORM" name="loadmap-form" class="customform-content  vert-flex  ">
+                    <fieldset>
+                        <label for="LOADMAP-SELECTOR" class="loadmap-form-label">Map:</label>
+                        <select name="LOADMAP-SELECTOR" id="LOADMAP-SELECTOR"></select>
+                    </fieldset>
+                    <div class="horz-flex">
+                        <button id="LOADMAP-SUBMIT">Load</button>
+                        <button id="LOADMAP-CLOSE">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="map-save-frame" class="fill-screen hidden">
+            <div id="map-save-popup" class="opaque center outlined customform">
+                <label for="SAVE-FORM">
+                    <h2>Save settings</h2>
+                </label>
+                <form action="javascript:void(0);" id="SAVE-FORM" name="save-form" class="customform-content vert-flex  ">
+                    <fieldset>
+                        <label for="SAVE-FILENAME">Name:</label>
+                        <input type="text" name="SAVE-FILENAME" id="SAVE-FILENAME">
+                    </fieldset>
+                    <fieldset>
+                        <label for="SAVE-CROP">Crop grid on save?</label>
+                        <input type="checkbox" name="SAVE-CROP" id="SAVE-CROP">
+                    </fieldset>
+                    <div class="horz-flex">
+                        <button id="SAVE-SUBMIT">Save</button>
+                        <button id="SAVE-CLOSE">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="map-nuke-frame" class="fill-screen hidden">
+            <div id="map-nuke-popup" class="opaque center outlined customform">
+                <label for="NUKE-FORM">
+                    <h2>Reset workspace</h2>
+                </label>
+                <form action="javascript:void(0);" id="SAVE-FORM" name="save-form" class=" customform-content vert-flex">
+                    <p>This action cannot be undone. Are you sure?</p>
+                    <div class="horz-flex">
+                        <button id="NUKE-SUBMIT">Yes, do it.</button>
+                        <button id="NUKE-CLOSE">No, cancel.</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="map-add-frame" class="fill-screen hidden">
+            <div id="map-add-popup" class="opaque center outlined customform">
+                <label for="ADDMAP-FORM">
+                    <h2>Add Map to Workspace</h2>
+                </label>
+                <form action="javascript:void(0);" id="ADDMAP-FORM" name="save-form" class=" customform-content vert-flex  ">
+                    <p>Note: Map being added must use same tileset as currently open map.</p>
+                    <fieldset>
+                        <label for="ADDMAP-SELECTOR">Map:</label>
+                        <select name="ADDMAP-SELECTOR" id="ADDMAP-SELECTOR"></select>
+                    </fieldset>
+                    <fieldset>
+                        <label for="ADDMAP-CROP">Crop current workspace before addition?</label>
+                        <input type="checkbox" name="ADDMAP-CROP" id="ADDMAP-CROP">
+                    </fieldset>
+                    <fieldset>
+                        <label for="addmap-direction-selector-frame">Direction</label>
+                        <div id="addmap-direction-selector-frame">
+                            <div id="ADDMAP-DIRECTION" class="">
+                                <button id="DIRECTION-TOP" value="top"></button>
+                                <button id="DIRECTION-RIGHT" value="right"></button>
+                                <button id="DIRECTION-BOTTOM" value="bottom"></button>
+                                <button id="DIRECTION-LEFT" value="left"></button>
+                                <div id="DIRECTION-ROOT"></div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="horz-flex">
+                        <button id="ADDMAP-SUBMIT">Go</button>
+                        <button id="ADDMAP-CLOSE">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="map-options-frame" class="fill-screen hidden">
+            <div id="map-options-popup" class="opaque center outlined customform">
+                <label for="OPTIONS-FORM">
+                    <h2>Options</h2>
+                </label>
+                <form action="javascript:void(0);" id="OPTIONS-FORM" name="save-form" class=" customform-content vert-flex">
+                    <fieldset id="OPTS-STYLE" class="horz-flex">
+                        <label for="OPTS-STYLE">Visual Style</label>
+                        <button id="STYLE-DARK">Dark mode</button>
+                        <button id="STYLE-LIGHT">Light mode</button>
+                    </fieldset>
+                    <button id="OPTS-CLOSE">Close</button>
+                </form>
+            </div>
+        </div>
+        <div id="map-data-frame" class="fill-screen hidden">
+            <div id="map-data-popup" class="opaque center outlined customform">
+                <label for="DATA-FORM">
+                    <h2>Cell Data Editor</h2>
+                </label>
+                <form action="javascript:void(0);" id="DATA-FORM" name="save-form" class=" customform-content vert-flex">
+                    <fieldset id="DATA-ENTRY" class="horz-flex">
+                        <label for="DATA-ENTRY">Visual Style</label>
+                        <input type="text" id="DATA-ENTRY-INPUT">
+                    </fieldset>
+                    <div class="horz-flex">
+                        <button id="DATA-CONFIRM">Confirm changes</button>
+                        <button id="DATA-CLOSE">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </main>
