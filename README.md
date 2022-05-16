@@ -1,12 +1,15 @@
 # Tile-Editor
 <p align="center">
-  <img src="./assets/shot2.png" width="80%">
+  <img src="./assets/title.png" width="70%">
 </p>
 <p align="center">
-  <img src="./assets/shot1.png" width="80%">
+  <img src="./assets/header.png" width="70%">
 </p>
 <p align="center">
-  <img src="./assets/header.png" width="80%">
+  <img src="./assets/shot1.png" width="70%">
+</p>
+<p align="center">
+  <img src="./assets/shot2.png" width="70%">
 </p>
 <p>A dev tool for laying out tile-based patterns, maps, etc.</p>
 
@@ -14,8 +17,7 @@
 
 <p>Originally created to aid the development of my <a href="https://github.com/nymphofthevales/Keeper-of-the-Labyrinth">Keeper of the Labyrinth</a> project, since that project includes a save file viewer in the form of a branching map.</p>
 
-<p>Intended to become a stand-alone application with an Electron build, capable of importing and exporting .JSON files to represent the tile structure created, as well as user-defined tilesets to work with in the GUI.</p>
-
-<p>Currently in development.</p>
+<p>Capable of save/load with a readable JSON format. Easily add user-defined tilesets as folders of images with a specifications file. Expand workspace indefinitely, and crop down to useful area at any time. Add saved maps to the current workspace to combine maps.</p>
+<p>Currently in development. Final build coming soon.</p>
 
 

@@ -91,6 +91,7 @@ export function saveCurrentMap(saveForm: Form, controller: GridController): void
         controller.cropWorkspace()
     }
     controller.export(filename)
+    saveForm.hide()
 }
 export function addToCurrentMap(addForm: Form, controller: GridController): void {
     let { mapName, crop, direction } = addForm.read()
