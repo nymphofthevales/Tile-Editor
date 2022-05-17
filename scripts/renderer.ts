@@ -65,6 +65,9 @@ export class GridRenderer {
     clearDOMRenderFrame() {
         this.frame.innerHTML = ''
     }
+    removeDOMRenderFrame() {
+        this.frame.remove()
+    }
     /**
      * Ensures only cells contained in the selector are rendered as selected.
      * Similar to {@link resolveData_DocumentDeltas}.

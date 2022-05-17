@@ -10,7 +10,8 @@ import {
     addToCurrentMap,
     endEditor,
     setAddFormDirection,
-    appendCellData
+    appendCellData,
+    resetCellDataWindow
 }  from "./scripts/menu_functions.js"
 import { 
     setupForm, 
@@ -44,7 +45,7 @@ listen("DIRECTION-RIGHT", "mouseup", () => { setAddFormDirection(addForm, "right
 listen("DIRECTION-BOTTOM", "mouseup", () => { setAddFormDirection(addForm, "bottom") })
 listen("DIRECTION-LEFT", "mouseup", () => { setAddFormDirection(addForm, "left") })
 
-nukeForm.onSubmit  = () => { controller.clearSession() }
+nukeForm.onSubmit  = () => { controller.clearWorkspace(); nukeForm.hide(); }
 nukeForm.onClose    = () => { nukeForm.hide() }
 
 optsForm.onClose     = () => { optsForm.hide() }
@@ -53,7 +54,7 @@ listen("STYLE-DARK", "mouseup", () => { colorSheet.href = "./styles/darkmode.css
 listen("STYLE-LIGHT", "mouseup", () => { colorSheet.href = "./styles/lightmode.css"  })
 
 dataForm.onSubmit  = () => { appendCellData(dataForm, controller) }
-dataForm.onClose    = () => { dataForm.hide() }
+dataForm.onClose    = () => { dataForm.hide(); resetCellDataWindow(); }
 
 listen("MENU-NEW", "mouseup", () => { fillTilesetsMenu(); setupForm.show() })
 listen("MENU-LOAD", 'mouseup', () => { fillSavesMenu("LOADMAP-SELECTOR"); loadForm.show(); })

@@ -176,6 +176,24 @@ export class Row {
             return returnVariable
         }
     }
+    /**
+     * Iterates over all cells lying between X1 and X2. Inclusive of endpoints.
+    */
+    forEachCellBetween(X1, X2, callback: Function, returnVariable?: any): void | any {
+        let left = Math.min(X1, X2)
+        let right = Math.max(X1, X2)
+        for (let x=left; x <= right; x++) {
+            let cell = this.column(x)
+            if (returnVariable != undefined) {
+                returnVariable = callback(cell, this.parentGrid, returnVariable)
+            } else {
+                callback(cell, this.parentGrid, returnVariable)
+            }
+        }
+        if (returnVariable != undefined) {
+            return returnVariable
+        }
+    }
 }
 
 
@@ -269,6 +287,16 @@ export class Grid {
         return this.rows.get(YCoordinate)
     }
     /**
+     * 
+    */
+    column(XCoordinate): Map<number, Cell> {
+        let column = new Map()
+        for (let y = this.bottom; y <= this.top; y++) {
+            column.set(y, this.row(y).column(XCoordinate))
+        }
+        return column
+    }
+    /**
      * @returns Returns the Cell at the specified Coordinates in the Grid.
      */
      cell([x,y]: Coordinate): Cell {
@@ -334,6 +362,49 @@ export class Grid {
             if (returnVariable != undefined) {
                 return returnVariable
             }
+        }
+    }
+    /**
+     * Iterates through row defined by YCoordinate over cells lying between X1 and X2. Inclusive of endpoints.
+    */
+    forEachCellInRowBetween(YCoordinate: number, X1: number, X2: number, callback: Function, returnVariable?: any): void | any {
+        return this.row(YCoordinate).forEachCellBetween(X1, X2, callback, returnVariable)
+    }
+    /**
+     * Iterates through column defined by XCoordinate over cells lying between Y1 and Y2. Inclusive of endpoints.
+    */
+    forEachCellInColumnBetween(XCoordinate: number, Y1: number, Y2: number, callback: Function, returnVariable?: any): void | any {
+        let bottom = Math.min(Y1, Y2)
+        let top = Math.max(Y1, Y2)
+        for (let y = bottom; y <= top; y++) {
+            let cell = this.row(y)?.column(XCoordinate)
+            if (cell != undefined) {
+                if (returnVariable != undefined) {
+                    returnVariable = callback(cell, this, returnVariable)
+                } else {
+                    callback(cell, this)
+                }
+            }
+        }
+        if (returnVariable != undefined) {
+            return returnVariable
+        }
+    }
+    /**
+     * Iterates over all cells in a rectangular area defined by two coordinates at its corners.
+    */
+    forEachCellinArea([X1, Y1]: Coordinate, [X2,Y2]: Coordinate, callback: Function, returnVariable?: any): void | any {
+        let bottom = Math.min(Y1, Y2)
+        let top = Math.max(Y1, Y2)
+        for (let y = bottom; y <= top; y++) {
+            if (returnVariable != undefined) {
+                returnVariable = this.forEachCellInRowBetween(y, X1, X2, callback, returnVariable)
+            } else {
+                this.forEachCellInRowBetween(y, X1, X2, callback, returnVariable)
+            }
+        }
+        if (returnVariable != undefined) {
+            return returnVariable
         }
     }
     /**

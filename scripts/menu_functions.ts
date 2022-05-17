@@ -78,9 +78,9 @@ function startEditor(controller) {
     main_menu.hide()
     application.show()
 }
-export function endEditor(controller) {
-    controller.export()
-    controller.clearSession()
+export function endEditor(controller: GridController) {
+    //controller.export()
+    controller.endSession()
     main_menu.show()
     application.hide()
 }
@@ -133,6 +133,10 @@ export function activateDataEditor(cellXY: Coordinate, cellData: CellData, contr
 export function appendCellData(dataForm: Form, controller: GridController) {
     let { data } = dataForm.read()
     lastEditedCell.data = JSON.parse(data)
-    document.getElementById("DATA-ENTRY-LABEL").textContent = `Cell Data`
+    resetCellDataWindow()
     dataForm.hide()
+}
+
+export function resetCellDataWindow(): void {
+    document.getElementById("DATA-ENTRY-LABEL").textContent = `Cell Data`
 }

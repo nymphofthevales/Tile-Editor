@@ -1,5 +1,5 @@
 import { GridRenderer, getCellReference } from "./renderer.js"
-import { Grid } from "./grid.js"
+import { Cell, Grid } from "./grid.js"
 import { GridIOManager, GridPreset } from "./gridio.js" 
 import { GridSelector } from "./selector.js"
 import { Stack } from "./stack.js"
@@ -10,6 +10,7 @@ import { DynamicElement } from "./dynamicElement.js"
 import { RotationGroup } from "./RotationGroup.js"
 import { extractDirectory } from "./file_helpers.js"
 import { activateDataEditor } from "./menu_functions.js"
+import { Coordinate } from "./coordinate.js"
 const fs = require("fs")
 
 export class GridController {
@@ -77,8 +78,11 @@ export class GridController {
         fs.writeFileSync(path, JSON.stringify(save))
         this.workingRenderer.resolveData_DocumentDeltas(this.workingGrid)
     }
-    clearSession() {
-
+    clearWorkspace() {
+        this.workingGrid.forEachCell((cell)=>{
+            cell.data = {"tile":"none"}
+        })
+        this.workingRenderer.renderTileset(this.workingGrid)
     }
     cropWorkspace(): void {
         this.workingGrid.cropGrid(this.emptyTileEvaluator)
@@ -90,6 +94,10 @@ export class GridController {
         this.workingRenderer.redoRender(this.workingGrid)
         this.zoomManager.setZoom('grid-cell')
         this.mouseManager.setupListeners()
+    }
+    endSession() {
+        this.controllerMenu.clearTileMenu()
+        this.workingRenderer.removeDOMRenderFrame()
     }
 }
 
@@ -121,6 +129,7 @@ export class ActionManager {
         } else {
             selector.select([x,y])
         }
+        this.renderer.renderSelection(this.selector)
     }
     draw_tiles([x,y]): void {
         let cell = this.grid.cell([x,y])
@@ -129,7 +138,14 @@ export class ActionManager {
         this.renderer.renderTile(cell)
     }
     drag_select([x1,y1], [x2,y2]): void {
-
+        this.selector.selectAreaBetween([x1,y1],[x2,y2])
+        this.renderer.renderSelection(this.selector)
+    }
+    draw_multiple(cells: Array<Coordinate>): void {
+        for (let i=0; i < cells.length; i++) {
+            let cell = cells[i]
+            this.draw_tiles(cell)
+        }
     }
     setupExpansionListeners(): void {
         let actionManager = this;
@@ -184,6 +200,9 @@ class KeyboardManager  {
     get ident() {return this.parentController.ident}
     get zoomManager() {return this.parentController.zoomManager}
     get controllerMenu() {return this.parentController.controllerMenu}
+    get actionManager() { return this.parentController.actionManager }
+    get selector() { return this.parentController.workingSelector }
+    get renderer() { return this.parentController.workingRenderer }
     zoomIn() {
         this.zoomManager.zoomIn()
     }
@@ -195,6 +214,29 @@ class KeyboardManager  {
     }
     rotateTileCW() {
         this.controllerMenu.rotateSelectedTile('clockwise')
+    }
+    toggleSelectionMode() {
+        let select = this.actionManager.select_deselect
+        let draw = this.actionManager.draw_tiles
+        let actionMode = this.actionManager.currentActionMode
+        if (actionMode == select) {
+            this.selector.clear()
+            this.renderer.renderSelection(this.selector)
+            this.actionManager.currentActionMode = draw
+        } else if (actionMode == draw) {
+            this.actionManager.currentActionMode = select
+        }
+    }
+    deleteSelectedTiles() {
+        console.log('DELETE')
+        let select = this.actionManager.select_deselect
+        let actionMode = this.actionManager.currentActionMode
+        if (actionMode == select) {
+            this.selector.delete({"tile":"none"})
+        }
+        this.selector.selection.forEachCell((cell)=>{
+            this.renderer.renderTile(cell)
+        })
     }
     setupListeners() {
         window.addEventListener('keyup', (event) => {
@@ -208,11 +250,17 @@ class KeyboardManager  {
                     case '_':
                         this.zoomOut()
                         break;
-                    case 'z':
+                    case 'q':
                         this.rotateTileCCW()
                         break;
-                    case 'x':
+                    case 'w':
                         this.rotateTileCW()
+                        break;
+                    case 'Shift':
+                        this.toggleSelectionMode()
+                        break;
+                    case "Backspace":
+                        this.deleteSelectedTiles()
                 }
         })
     }
@@ -220,33 +268,46 @@ class KeyboardManager  {
 
 class MouseManager{
     mousePosition: Stack
+    mousePositionCurrent: Coordinate
+    mousePositionLast: Coordinate
     parentController: GridController
+    cursor: HTMLDivElement
 
     constructor(parentController: GridController) {
         this.mousePosition = new Stack()
         this.mousePosition["listening"] = false
         this.parentController = parentController
+        this.cursor = <HTMLDivElement>document.getElementById('custom-cursor');
     }
     get ident() {return this.parentController.ident}
     get actionManager() {return this.parentController.actionManager}
     get keyboardManager() {return this.parentController.keyboardManager}
+    get selector() { return this.parentController.workingSelector }
+    get renderer() { return this.parentController.workingRenderer }
     click() {
         console.log(this.mousePosition._stack)
         let [x,y] = this.mousePosition.latest
         this.actionManager.currentActionMode([x,y])
-        this.actionManager.renderer.renderSelection(this.actionManager.selector)
     }
     release() {
         console.log('release', this.mousePosition.latest, this.mousePosition.oldest)
+        let actionMode = this.actionManager.currentActionMode
+        let select = this.actionManager.select_deselect
+        let draw = this.actionManager.draw_tiles
+        if (actionMode == select) {
+            this.actionManager.drag_select(this.mousePosition.latest, this.mousePosition.oldest)
+        } else if (actionMode == draw) {
+            this.actionManager.draw_multiple(this.mousePosition._stack)
+        }
     }
     hover() {
-        let [x,y] = this.mousePosition.latest
-        console.log('hover', this.mousePosition.latest)
+        let [x,y] = this.mousePositionCurrent
+        console.log('hover', this.mousePositionCurrent)
         getCellReference([x,y], this.ident).classList.add('hovered')
     }
     clearHover() {
-        let [x,y] = this.mousePosition.oldest
-        console.log('clearhover', this.mousePosition.oldest)
+        let [x,y] = this.mousePositionLast
+        console.log('clearhover', this.mousePositionLast)
         getCellReference([x,y], this.ident).classList.remove('hovered')
     }
    setupListeners() {
@@ -256,15 +317,18 @@ class MouseManager{
             let reference = getCellReference( [x,y], this.ident )
             reference.draggable = false
             reference.addEventListener("pointerenter", () => {
+                this.mousePositionCurrent = [x,y]
+                this.hover()
+                this.mousePosition.push([x,y])
                 if (!this.mousePosition['listening']) {
                     this.mousePosition.clear()
                     this.mousePosition.push([x,y])
-                    this.hover()
                 }
             })
             reference.addEventListener("pointerleave", () => {
+                this.mousePositionLast = [x,y]
+                this.clearHover()
                 if (!this.mousePosition['listening']) {
-                    this.clearHover()
                     this.mousePosition.clear()
                 }
             })
@@ -277,18 +341,22 @@ class MouseManager{
                 this.mousePosition.push([x,y])
                 this.release()
                 this.mousePosition['listening'] = false
-                this.clearHover()
                 this.mousePosition.clear()
                 this.mousePosition.push([x,y])
-                this.hover()
             })
             reference.addEventListener("dblclick", () => {
                 activateDataEditor([x,y], cell.data, parentController)
             })
         })  
     }
-    appendCustomCursors() {
+    setCursor(cursorType: string) {
 
+    }
+    appendCustomCursor() {
+        document.addEventListener('mousemove', (event)=>{
+            this.cursor.style.top = `${event.pageY}px`;
+            this.cursor.style.left = `${event.pageX}px`;
+        })
     }
 }
 
@@ -391,6 +459,9 @@ class ControllerMenu {
             console.log(buttonsPlaced)
             return buttonsPlaced
         }, buttonsPlaced)
+    }
+    clearTileMenu() {
+        document.getElementById("tile-selector-frame").innerHTML = ""
     }
     getRepresentativeTile(rotationGroup: RotationGroup): Tile {
         let tilesInGroup = Array.from(rotationGroup.clockwise.keys())

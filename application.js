@@ -1,4 +1,4 @@
-import { fillTilesetsMenu, fillSavesMenu, startFromNew, startFromLoad, saveCurrentMap, addToCurrentMap, endEditor, setAddFormDirection, appendCellData } from "./scripts/menu_functions.js";
+import { fillTilesetsMenu, fillSavesMenu, startFromNew, startFromLoad, saveCurrentMap, addToCurrentMap, endEditor, setAddFormDirection, appendCellData, resetCellDataWindow } from "./scripts/menu_functions.js";
 import { setupForm, loadForm, saveForm, addForm, nukeForm, optsForm, dataForm } from "./scripts/application_forms.js";
 let controller;
 function listen(elementID, event, action) {
@@ -16,14 +16,14 @@ listen("DIRECTION-TOP", "mouseup", () => { setAddFormDirection(addForm, "top"); 
 listen("DIRECTION-RIGHT", "mouseup", () => { setAddFormDirection(addForm, "right"); });
 listen("DIRECTION-BOTTOM", "mouseup", () => { setAddFormDirection(addForm, "bottom"); });
 listen("DIRECTION-LEFT", "mouseup", () => { setAddFormDirection(addForm, "left"); });
-nukeForm.onSubmit = () => { controller.clearSession(); };
+nukeForm.onSubmit = () => { controller.clearWorkspace(); nukeForm.hide(); };
 nukeForm.onClose = () => { nukeForm.hide(); };
 optsForm.onClose = () => { optsForm.hide(); };
 let colorSheet = document.getElementById("color-palette");
 listen("STYLE-DARK", "mouseup", () => { colorSheet.href = "./styles/darkmode.css"; });
 listen("STYLE-LIGHT", "mouseup", () => { colorSheet.href = "./styles/lightmode.css"; });
 dataForm.onSubmit = () => { appendCellData(dataForm, controller); };
-dataForm.onClose = () => { dataForm.hide(); };
+dataForm.onClose = () => { dataForm.hide(); resetCellDataWindow(); };
 listen("MENU-NEW", "mouseup", () => { fillTilesetsMenu(); setupForm.show(); });
 listen("MENU-LOAD", 'mouseup', () => { fillSavesMenu("LOADMAP-SELECTOR"); loadForm.show(); });
 listen("MENU-OPTIONS", "mouseup", () => { optsForm.show(); });

@@ -59,6 +59,14 @@ import { insertElementInMap } from "./map_helpers.js"
             this.select(cells[i])
         }
     }
+    selectAreaBetween([X1, Y1]: Coordinate, [X2,Y2]: Coordinate): void {
+        this.childGrid.forEachCellinArea([X1,Y1], [X2,Y2], (cell: Cell, grid)=>{
+            let [x,y] = cell.XYCoordinate
+            if (!this.selection.hasCell([x,y])) {
+                this.select(cell.XYCoordinate)
+            }
+        })
+    }
     /**
      * Adds the Cell at the given XY coordinate into the selection, if it exists.
      * @param XYCoordinate 
@@ -157,9 +165,9 @@ import { insertElementInMap } from "./map_helpers.js"
      * Removes the data of each cell in the selection.
      * @see _iterateOverSelection
      */
-    delete(): void {
+    delete(emptyData?:any): void {
         this._iterateOverSelection((params)=>{
-            params.currentCell.data = undefined
+            params.currentCell.data = emptyData
         })
     }
     /**
