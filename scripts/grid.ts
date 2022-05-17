@@ -606,8 +606,10 @@ export class Grid {
      * and relativeY = q
     */
     generateRelativeXYCoordinates(iterationCounter: number, other: Grid): Coordinate {
-        let relativeX = iterationCounter % other.width //remainder
-        let relativeY = (iterationCounter - (iterationCounter % other.height)) / other.height //quotient, equivalent to floor(a/b)
+        let i = iterationCounter;
+        let w = other.width;
+        let relativeX = i % w
+        let relativeY = Math.floor( i / w ) 
         console.log(`iteration:${iterationCounter} => [${relativeX},${relativeY}]`)
         return [relativeX, relativeY]
     }

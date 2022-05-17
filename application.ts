@@ -55,7 +55,6 @@ listen("STYLE-LIGHT", "mouseup", () => { colorSheet.href = "./styles/lightmode.c
 dataForm.onSubmit  = () => { appendCellData(dataForm, controller) }
 dataForm.onClose    = () => { dataForm.hide() }
 
-
 listen("MENU-NEW", "mouseup", () => { fillTilesetsMenu(); setupForm.show() })
 listen("MENU-LOAD", 'mouseup', () => { fillSavesMenu("LOADMAP-SELECTOR"); loadForm.show(); })
 listen("MENU-OPTIONS", "mouseup", () => { optsForm.show() })
