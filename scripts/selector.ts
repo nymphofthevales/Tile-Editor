@@ -31,9 +31,17 @@ import { insertElementInMap } from "./map_helpers.js"
     }
     /**
      * Executes a callback function at each element in the selection array. The callback function is given access to all local variables from iteration, in order: currentCell, destinationCell, returnVariable, deltaX, deltaY, i.
-     * @param callback A function to execute at each element in the selection.
+     * @param callback A function to execute at each element in the selection. Callback is passed a params object.
      * @param returnVariable Optional. A variable which can be modified by the callback function to pass back to the caller.
      * @returns Returns void if no returnVariable is given, or returns whatever is assigned to the returnVariable.
+     * @example 
+     * selector._iterateOverSelection((params)=>{console.log(params)})
+     * params = {
+     *      initialPosition: <Coordinate>[initialX, initialY],
+            finalPosition: <Coordinate>[finalX, finalY],
+            currentCell: <Cell>currentCell,
+            destinationCell: <Cell>destinationCell,
+     * }
      */
     _iterateOverSelection(callback: Function, returnVariable?: any): void | any {
         let [deltaX,deltaY] = this.positionDelta

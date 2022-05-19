@@ -122,6 +122,21 @@ export class ActionManager {
     get zoomManager() {return this.parentController.zoomManager}
     get mouseManager() {return this.parentController.mouseManager}
     get controllerMenu() {return this.parentController.controllerMenu}
+
+    get actionMode() {
+        if (this.currentActionMode == this.select_deselect) {
+            return "select"
+        } else if (this.currentActionMode == this.draw_tiles) {
+            return "draw"
+        }
+    }
+    set actionMode(mode: string) {
+        if (mode == "select") {
+            this.currentActionMode = this.select_deselect
+        } else if (mode == "draw") {
+            this.currentActionMode = this.draw_tiles
+        }
+    }
     select_deselect([x,y]): void {
         let selector = this.selector
         if (selector.selection.hasCell([x,y])) {
@@ -198,11 +213,13 @@ class KeyboardManager  {
         this.parentController = parentController
     }
     get ident() {return this.parentController.ident}
+    get grid() { return this.parentController.workingGrid }
     get zoomManager() {return this.parentController.zoomManager}
     get controllerMenu() {return this.parentController.controllerMenu}
     get actionManager() { return this.parentController.actionManager }
     get selector() { return this.parentController.workingSelector }
     get renderer() { return this.parentController.workingRenderer }
+    get actionMode() { return this.actionManager.actionMode }
     zoomIn() {
         this.zoomManager.zoomIn()
     }
@@ -216,27 +233,40 @@ class KeyboardManager  {
         this.controllerMenu.rotateSelectedTile('clockwise')
     }
     toggleSelectionMode() {
-        let select = this.actionManager.select_deselect
-        let draw = this.actionManager.draw_tiles
-        let actionMode = this.actionManager.currentActionMode
-        if (actionMode == select) {
+        if (this.actionMode == "select") {
             this.selector.clear()
             this.renderer.renderSelection(this.selector)
-            this.actionManager.currentActionMode = draw
-        } else if (actionMode == draw) {
-            this.actionManager.currentActionMode = select
+            this.actionManager.actionMode = "draw"
+        } else if (this.actionMode == "draw") {
+            this.actionManager.actionMode = "select"
         }
     }
     deleteSelectedTiles() {
-        console.log('DELETE')
-        let select = this.actionManager.select_deselect
-        let actionMode = this.actionManager.currentActionMode
-        if (actionMode == select) {
+        if (this.actionMode == "select") {
             this.selector.delete({"tile":"none"})
         }
         this.selector.selection.forEachCell((cell)=>{
             this.renderer.renderTile(cell)
         })
+    }
+    fillArea() {
+        if (this.actionMode == "select") {
+            this.selector._iterateOverSelection((params)=>{
+                let cell = params.currentCell
+                let [x,y] = cell.XYCoordinate
+                console.log(`cell xy at iteration: ${[x,y]}`)
+                this.actionManager.draw_tiles([x,y])
+                this.renderer.renderTile(cell)
+            })
+        }
+    }
+    selectAll() {
+        if (!(this.actionMode == "select")) {
+            this.actionManager.actionMode = "select"
+        }
+        let bottom_left = <Coordinate>[this.grid.left, this.grid.bottom]
+        let top_right = <Coordinate>[this.grid.right, this.grid.top]
+        this.actionManager.drag_select(bottom_left, top_right)
     }
     setupListeners() {
         window.addEventListener('keyup', (event) => {
@@ -256,11 +286,19 @@ class KeyboardManager  {
                     case 'w':
                         this.rotateTileCW()
                         break;
+                    case 'a':
+                        this.selectAll()
+                        break;
                     case 'Shift':
                         this.toggleSelectionMode()
                         break;
                     case "Backspace":
                         this.deleteSelectedTiles()
+                        break;
+                    case "Enter":
+                        this.fillArea()
+                        break;
+                    
                 }
         })
     }

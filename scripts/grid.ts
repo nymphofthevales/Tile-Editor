@@ -349,6 +349,12 @@ export class Grid {
     forEachCellInRow(YCoordinate: number, callback: Function, returnVariable?: any): void | any {
         return this.row(YCoordinate)?.forEachCell(callback, returnVariable)
     }
+    /**
+     * Runs callback on each cell in column, iterating from negative index to positive.
+     * @param XCoordinate specifies column.
+     * @param callback will be passed cell, grid containing the cell, and the returnVariable, if specified.
+     * @param returnVariable if return value is desired from callback this param should be modified and re
+    */
     forEachCellInColumn(XCoordinate: number, callback: Function, returnVariable?: any): void | any {
         if (this.row(this.bottom).hasCell(XCoordinate)) {
             for (let y=this.bottom; y <= this.top; y++) {
@@ -710,3 +716,6 @@ function getOtherAxis(direction) {
             return "height"
     }
 }
+
+
+let x = new Grid( 5,5 )

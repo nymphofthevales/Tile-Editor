@@ -49,6 +49,11 @@ body {
     width: max-content;
     height: max-content;
 }
+.grid-row {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+}
 .expand-button {
     position: absolute;
     padding: 0;
@@ -78,11 +83,6 @@ body {
     transform: translateY(-50%);
 }
 
-.grid-row {
-    display: flex;
-    flex-direction: row;
-    width: fit-content;
-}
 
 .grid-h-1 {
     height: 10px;
